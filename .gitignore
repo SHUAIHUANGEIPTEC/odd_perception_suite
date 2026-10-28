@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+.env
+.env.*
+
+# Weight binaries (MANIFEST.json is tracked; verify with scripts/verify_weights.py)
+weights/*.pth
+weights/*.ckpt
+weights/*.pt
+weights/*.onnx
+
+# Runtime outputs
+outputs/
+results/
+eval_results/
+report*.json
+*.log
+
+# Generated demo assets (see examples/images/README.md — no binaries in git)
+examples/images/*.png
+examples/images/*.jpg
+
+# Native build artifacts (Sparse4D CUDA ops, compiled extensions)
+vendor/sparse4d/**/*.so
+vendor/sparse4d/**/build/
+vendor/sparse4d/outputs/
+vendor/sparse4d/results/
+vendor/sparse4d/eval_results/
+*.o
+*.a
+*.so
+
+# Editor / IDE / tooling style configs (keep the repo free of personal or
+# agent-generated workspace files; .clang-format/.gitignore themselves stay tracked)
+.idea/
+.vscode/
+.mimocode/
+.claude/
+.cursor/
+.windsurf/
+.continue/
+.codex/
+.specstory/
+.history/
+.aider*
+.DS_Store
+*.swp
+*~
+.cache/

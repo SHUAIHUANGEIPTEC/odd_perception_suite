@@ -1,0 +1,56 @@
+# @package _global_
+
+# specify here default configuration
+# order of defaults determines the order in which configs override each other
+defaults:
+  - _self_
+  - data: null
+  - model: null
+  - callbacks: default.yaml
+  - logger: tensorboard.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - trainer: default.yaml
+  - paths: default.yaml
+  - extras: default.yaml
+  - hydra: default.yaml
+  - experiment: null
+
+# task name, determines output directory path
+task_name: "train"
+
+# tags to help you identify your experiments
+# you can overwrite this in experiment configs
+# overwrite from command line with `python train.py tags="[first_tag, second_tag]"`
+tags: ["dev"]
+
+# set False to skip model training
+train: True
+
+# simply provide checkpoint path to resume training
+ckpt_path: null
+
+# seed for random number generators in pytorch, numpy and python.random
+seed: 12345
+
+# data setting
+num_workers: 5
+pin_memory: True
+cam_res: [256, 256]
+image_size: [256, 256]
+tile_size: 256
+scene_size: [8, 128, 128]
+aug_size: [1.0, 0.8, 0.8]
+frustum_size: [60, 32, 32]
+pc: [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+torch_ckpt: False
+flash_attn: False
+
+num_nodes: 1
+devices: 8
+batch_size: 1
+accumulate_grad_batches: 1
+max_steps: 100000
+score_cache_size: 512 # 512 * 4 = 2048 
+check_interval: 10000 
+ema_decay: 0.9999
+class_num: 10
+frame_num: 3

@@ -1,0 +1,7 @@
+{
+  "LT50": 40,
+  "50_200": 120,
+  "200_500": 350,
+  "GE500": 2000,
+  "_notes": "Conservative representative per band (meters). GE500 is a cap, not a measurement."
+}

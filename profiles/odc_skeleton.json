@@ -1,0 +1,23 @@
+{
+  "profile_id": "odc_skeleton",
+  "label_zh": "ODC 元素列表骨架 (GB/T 45312 风格)",
+  "definition_mode": "default",
+  "extends": null,
+  "elements": [
+    {"element_id": "ODC.SK.1.road_type", "path": ["道路特征", "道路类型"], "label_zh": "道路类型", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "scenery.road_type", "tags": ["road", "skeleton"]},
+    {"element_id": "ODC.SK.2.road_surface", "path": ["道路特征", "道路表面"], "label_zh": "道路表面", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "scenery.surface_type", "tags": ["road", "skeleton"]},
+    {"element_id": "ODC.SK.3.road_geometry", "path": ["道路特征", "道路几何"], "label_zh": "道路几何", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "scenery.geometry_type", "tags": ["road", "skeleton"]},
+    {"element_id": "ODC.SK.4.lane_feature", "path": ["道路特征", "车道特征"], "label_zh": "车道特征", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "scenery.lane_type", "tags": ["road", "skeleton"]},
+    {"element_id": "ODC.SK.5.junction", "path": ["道路特征", "道路交叉"], "label_zh": "道路交叉", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "scenery.junction_type", "tags": ["road", "skeleton"]},
+    {"element_id": "ODC.SK.6.road_edge", "path": ["道路特征", "道路边缘"], "label_zh": "道路边缘", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "scenery.edge_type", "tags": ["road", "skeleton"]},
+    {"element_id": "ODC.SK.7.special_facility", "path": ["道路特征", "特殊设施"], "label_zh": "特殊设施", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "scenery.special_facility", "tags": ["road", "skeleton"]},
+    {"element_id": "ODC.SK.8.traffic_sign", "path": ["道路设施", "交通标志"], "label_zh": "交通标志", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "scenery.sign_type", "tags": ["road", "skeleton"]},
+    {"element_id": "ODC.SK.9.traffic_light", "path": ["道路设施", "交通信号灯"], "label_zh": "交通信号灯", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "scenery.light_type", "tags": ["road", "skeleton"]},
+    {"element_id": "ODC.SK.10.weather", "path": ["天气环境", "天气"], "label_zh": "天气", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "environment.weather_type", "tags": ["environment", "skeleton"]},
+    {"element_id": "ODC.SK.11.illumination", "path": ["天气环境", "光照"], "label_zh": "光照", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "environment.illumination_type", "tags": ["environment", "skeleton"]},
+    {"element_id": "ODC.SK.12.traffic_agent", "path": ["交通参与者"], "label_zh": "交通参与者", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "dynamic.agent_type", "tags": ["dynamic", "skeleton"]},
+    {"element_id": "ODC.SK.13.driver_status", "path": ["驾乘人员状态", "驾驶员状态"], "label_zh": "驾驶员状态", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "vehicle.driver_status", "tags": ["driver", "skeleton"]},
+    {"element_id": "ODC.SK.14.vehicle_motion", "path": ["车辆状态", "车辆运动状态"], "label_zh": "车辆运动状态", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "vehicle.motion_state", "tags": ["vehicle", "skeleton"]},
+    {"element_id": "ODC.SK.15.system_status", "path": ["车辆状态", "自动驾驶系统状态"], "label_zh": "ADS 系统状态", "requirement": "undefined", "rule_type": "qualitative_enum", "observation_key": "vehicle.ads_status", "tags": ["system", "skeleton"]}
+  ]
+}

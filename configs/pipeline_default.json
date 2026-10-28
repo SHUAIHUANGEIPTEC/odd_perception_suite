@@ -1,0 +1,13 @@
+{
+  "profile": "byd_tjp",
+  "switches": "default_switches",
+  "attr_checkpoint": null,
+  "detect_ckpt": null,
+  "device": "cpu",
+  "weather_threshold": 0.5,
+  "score_threshold": 0.0,
+  "mapping_dir": null,
+  "enable_attr": true,
+  "enable_detect": false,
+  "sidecar": null
+}

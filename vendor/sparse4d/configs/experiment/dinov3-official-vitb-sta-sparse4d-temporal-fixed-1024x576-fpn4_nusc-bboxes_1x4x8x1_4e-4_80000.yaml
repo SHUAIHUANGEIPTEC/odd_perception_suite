@@ -1,0 +1,269 @@
+# @package _global_
+# Consolidated original experiment; only asset paths made portable.
+defaults:
+- override /callbacks: perception.yaml
+- override /data: nusc-bboxes.yaml
+- override /model: dinov3-official-perceptor-mlp-det.yaml
+- override /trainer: default.yaml
+- _self_
+tags:
+- dinov3-vitb-sta-sparse4d-temporal-fixed-4gpu-1024x576-fpn4
+- nusc-bboxes
+num_workers: 4
+num_nodes: 1
+devices: 4
+batch_size: 8
+accumulate_grad_batches: 1
+real_lr: 0.0004
+max_steps: 80000
+score_cache_size: 20
+check_interval: 1000
+ema_decay: 0.999
+scene_size:
+- 1
+- 200
+- 200
+exp_name: ${tags[0]}_${tags[1]}_${num_nodes}x${devices}x${batch_size}x${accumulate_grad_batches}_${real_lr}_${max_steps}
+data:
+  train:
+    augment: true
+    crop_box: null
+    augmentation_mode: sparse4d
+    sparse4d_resize_lim:
+    - 0.64
+    - 0.752
+    sparse4d_bot_pct_lim:
+    - 0.0
+    - 0.0
+    sparse4d_rot_lim:
+    - -5.4
+    - 5.4
+    sparse4d_rand_flip: true
+    sparse4d_rot3d_range:
+    - -0.3925
+    - 0.3925
+    temporal: true
+    temporal_timestamp_unit: auto
+    sequences_split_num: 2
+  val:
+    augment: false
+    crop_box: null
+    augmentation_mode: sparse4d
+    sparse4d_resize_lim:
+    - 0.64
+    - 0.752
+    sparse4d_bot_pct_lim:
+    - 0.0
+    - 0.0
+    sparse4d_rot_lim:
+    - -5.4
+    - 5.4
+    sparse4d_rand_flip: true
+    sparse4d_rot3d_range:
+    - -0.3925
+    - 0.3925
+    temporal: true
+    temporal_timestamp_unit: auto
+    sequences_split_num: 1
+  temporal_sampling: true
+  sampler_seed: ${seed}
+model:
+  backbone_lr_mult: 0.025
+  backbone_adapter_lr_mult: 1.0
+  scheduler_frequency: 1
+  backbone:
+    _target_: bev_vae.models.perception.dinov3_official.DINOv3OfficialSTABackbone
+    arch: vitb16
+    weight_path: ${oc.env:DINOV3_WEIGHT_PATH,${paths.ckpt_dir}/dinov3_vitb16_pretrain_lvd1689m-73cec8be.pth}
+    out_indices:
+    - 3
+    - 7
+    - 11
+    level_num: 3
+    repo_or_dir: ${paths.root_dir}/third_party/dinov3
+    checkpoint_blocks: true
+    sta_out_channels: 96
+    detail_channels:
+    - 32
+    - 64
+    - 128
+  grid_mask:
+    _target_: bev_vae.models.perception.grid_mask.Sparse4DGridMask
+    use_h: true
+    use_w: true
+    rotate: 1
+    offset: false
+    ratio: 0.5
+    mode: 1
+    prob: 0.7
+  scene_encoder:
+    _target_: bev_vae.models.perception.dinov3_official.SceneEncoder2D
+    in_ch: 96
+    out_ch: 256
+    block_num: 6
+    head_num: 8
+    level_num: 4
+    point_num: 8
+    dropout: 0.0
+    bias: false
+    ckpt: ${torch_ckpt}
+    image_size: ${image_size}
+    scene_size: ${scene_size}
+    pc: ${pc}
+    z_anchor_num: 4
+    z_anchors:
+    - -4.0
+    - -2.0
+    - 0.0
+    - 2.0
+    fpn_in_channels:
+    - 96
+    - 96
+    - 96
+    fpn_in_keys:
+    - c2
+    - c3
+    - c4
+    fpn_scale_factors:
+    - 1.0
+    - 1.0
+    - 1.0
+    fpn_output_levels: 4
+    fpn_top_down: true
+    fpn_norm: GN
+    fpn_activation: GELU
+  connector:
+    _target_: bev_vae.models.perception.connector.Identity
+  detector: null
+  perspective_aux_head: null
+  sparse4d_loss_weight: 1.0
+  sparse4d_head:
+    _target_: bev_vae.models.perception.sparse4d_head.Sparse4DHead
+    num_classes: ${class_num}
+    pc: ${pc}
+    anchor: ${oc.env:SPARSE4D_ANCHOR_PATH,${paths.root_dir}/nuscenes_kmeans900_bevvae.npy}
+    num_anchor: 900
+    embed_dims: 256
+    num_decoder: 6
+    num_heads: 8
+    num_groups: 8
+    num_levels: 4
+    num_cams: 6
+    num_learnable_pts: 6
+    fix_scale:
+    - - 0.0
+      - 0.0
+      - 0.0
+    - - 0.45
+      - 0.0
+      - 0.0
+    - - -0.45
+      - 0.0
+      - 0.0
+    - - 0.0
+      - 0.45
+      - 0.0
+    - - 0.0
+      - -0.45
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 0.45
+    - - 0.0
+      - 0.0
+      - -0.45
+    dropout: 0.1
+    attn_drop: 0.15
+    decouple_attn: true
+    with_quality_estimation: true
+    default_time_interval: 0.5
+    cls_threshold_to_reg: -1.0
+    cls_loss_weight: 2.0
+    box_loss_weight: 0.25
+    matching_reg_weights:
+    - 2.0
+    - 2.0
+    - 2.0
+    - 0.5
+    - 0.5
+    - 0.5
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    reg_weights:
+    - 2.0
+    - 2.0
+    - 2.0
+    - 1.0
+    - 1.0
+    - 1.0
+    - 1.0
+    - 1.0
+    - 1.0
+    - 1.0
+    class_wise_reg_weights:
+      7:
+      - 2.0
+      - 2.0
+      - 2.0
+      - 1.0
+      - 1.0
+      - 1.0
+      - 0.0
+      - 0.0
+      - 1.0
+      - 1.0
+    barrier_class_id: 0
+    num_dn_groups: 5
+    dn_noise_scale:
+    - 2.0
+    - 2.0
+    - 2.0
+    - 0.5
+    - 0.5
+    - 0.5
+    - 0.5
+    - 0.5
+    - 0.5
+    - 0.5
+    max_dn_gt: 32
+    add_neg_dn: true
+    anchor_grad: true
+    feat_grad: false
+    use_deformable_func: true
+    score_threshold: null
+    temporal: true
+    num_temp_instances: 600
+    num_single_frame_decoder: 1
+    confidence_decay: 0.6
+    max_time_interval: 2.0
+    min_time_interval: 0.01
+  scheduler:
+    lr_min: 4.0e-07
+    warm_up: 500
+    lr_start: 0.00013333333333333334
+  weight_decay: 0.001
+  load_ema: false
+trainer:
+  strategy: ddp_find_unused_parameters_true
+  precision: bf16-mixed
+  use_distributed_sampler: false
+  gradient_clip_val: 25.0
+callbacks:
+  model_checkpoint:
+    every_n_train_steps: 5000
+  image_generation:
+    interval: 5000
+torch_ckpt: true
+flash_attn: true
+cam_res:
+- 576
+- 1024
+image_size:
+- 576
+- 1024
+frustum_size:
+- 60
+- 32
+- 88

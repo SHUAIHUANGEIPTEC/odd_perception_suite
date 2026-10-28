@@ -1,0 +1,10 @@
+defaults:
+  - model_checkpoint.yaml
+  - model_summary.yaml
+  - rich_progress_bar.yaml
+  - image_generation.yaml
+  - score.yaml
+  - _self_
+
+score:
+  eval_det_cfg_path: ${paths.root_dir}/bev_vae/evaluation/eval_det_nusc_cfg.json

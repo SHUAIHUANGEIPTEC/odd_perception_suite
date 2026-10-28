@@ -1,0 +1,20 @@
+{
+  "baseline": {
+    "rain_mm_per_h": 0.0,
+    "snow_level": "none",
+    "fog": false
+  },
+  "rules": {
+    "Rain": { "set": { "rain_mm_per_h": 4.0 } },
+    "Snow": { "set": { "snow_level": "moderate" } },
+    "Fog": { "set": { "fog": true }, "clamp_visibility_m": 350 },
+    "Haze": { "clamp_visibility_m": 200 },
+    "Dust": { "clamp_visibility_m": 200 }
+  },
+  "_notes": {
+    "Snow": "Classifier has no intensity head; 'moderate' is the conservative default (BOUNDARY warning). Override to 'light' for permissive profiles.",
+    "Fog": "Clamp resolves the GE500+Fog contradiction in favour of the degraded reading.",
+    "Haze_Dust": "Treated as mild degradation: visibility_m capped at 200.",
+    "unlisted_weather": "Sunny/Cloudy write no fields; the baseline covers rain/snow/fog negatives."
+  }
+}

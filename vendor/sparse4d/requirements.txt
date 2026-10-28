@@ -1,0 +1,27 @@
+# Install a matching CUDA build of torch/torchvision first; see README.md.
+torch==2.5.1
+torchvision==0.20.1
+setuptools==80.9.0
+pytorch-lightning==2.1.0
+torchmetrics>=1.2,<2
+hydra-core==1.3.2
+hydra-colorlog==1.2.0
+pyrootutils
+rich==14.0.0
+tensorboard
+einops>=0.6,<1
+numpy==1.26.4
+pandas==1.5.3
+Pillow==9.5.0
+scipy>=1.10,<2
+scikit-image
+scikit-learn
+pyarrow
+pyquaternion
+opencv-python-headless>=4.7,<4.12
+matplotlib
+shapely>=1.8,<3
+nuscenes-devkit==1.2.0
+pycocotools
+tqdm
+ninja

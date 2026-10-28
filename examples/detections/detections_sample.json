@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "use_camera": true,
+    "use_lidar": false,
+    "use_radar": false,
+    "use_map": false,
+    "use_external": true
+  },
+  "results": {
+    "demo-sample-0001": [
+      {
+        "sample_token": "demo-sample-0001",
+        "translation": [412.5, 1180.2, 0.8],
+        "size": [1.9, 4.6, 1.5],
+        "rotation": [0.9962, 0.0, 0.0, 0.0872],
+        "velocity": [12.5, 0.3],
+        "detection_name": "car",
+        "detection_score": 0.92,
+        "attribute_name": "vehicle.moving"
+      },
+      {
+        "sample_token": "demo-sample-0001",
+        "translation": [438.1, 1192.4, 0.8],
+        "size": [1.9, 4.4, 1.5],
+        "rotation": [0.9998, 0.0, 0.0, 0.0175],
+        "velocity": [10.2, -0.1],
+        "detection_name": "car",
+        "detection_score": 0.88,
+        "attribute_name": "vehicle.moving"
+      },
+      {
+        "sample_token": "demo-sample-0001",
+        "translation": [455.0, 1205.7, 1.2],
+        "size": [2.5, 9.8, 3.4],
+        "rotation": [0.9994, 0.0, 0.0, 0.0349],
+        "velocity": [9.8, 0.2],
+        "detection_name": "truck",
+        "detection_score": 0.81,
+        "attribute_name": "vehicle.moving"
+      }
+    ],
+    "demo-sample-0002": [
+      {
+        "sample_token": "demo-sample-0002",
+        "translation": [421.0, 1186.5, 0.9],
+        "size": [0.7, 0.8, 1.75],
+        "rotation": [0.9063, 0.0, 0.0, 0.4226],
+        "velocity": [1.2, 0.0],
+        "detection_name": "pedestrian",
+        "detection_score": 0.78,
+        "attribute_name": "pedestrian.moving"
+      },
+      {
+        "sample_token": "demo-sample-0002",
+        "translation": [449.2, 1201.1, 0.4],
+        "size": [0.4, 0.4, 0.7],
+        "rotation": [1.0, 0.0, 0.0, 0.0],
+        "velocity": [0.0, 0.0],
+        "detection_name": "traffic_cone",
+        "detection_score": 0.66,
+        "attribute_name": ""
+      },
+      {
+        "sample_token": "demo-sample-0002",
+        "translation": [452.6, 1203.0, 0.4],
+        "size": [0.4, 0.4, 0.7],
+        "rotation": [1.0, 0.0, 0.0, 0.0],
+        "velocity": [0.0, 0.0],
+        "detection_name": "traffic_cone",
+        "detection_score": 0.61,
+        "attribute_name": ""
+      }
+    ]
+  }
+}

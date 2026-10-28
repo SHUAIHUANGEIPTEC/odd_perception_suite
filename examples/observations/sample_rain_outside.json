@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-02-03T10:10:00Z",
+  "source": "sample_rain_outside",
+  "fields": {
+    "scenery": {
+      "legal_l3_area": true,
+      "road_type": "expressway_main",
+      "curve_radius_m": 400.0,
+      "lane_width_m": 3.5,
+      "longitudinal_grade_pct": 2.0,
+      "cross_slope_pct": 1.0,
+      "marking_clear": false,
+      "has_no_marking": false,
+      "has_intersection": false,
+      "has_roundabout": false,
+      "has_ramp": false,
+      "has_toll_station": false,
+      "has_railway_crossing": false,
+      "construction_zone": false,
+      "accident_scene": false,
+      "traffic_control": false
+    },
+    "vehicle": {
+      "speed_kmh": 60.0,
+      "activation_speed_kmh": 60.0,
+      "lat_accel_mps2": 0.5,
+      "lon_accel_mps2": -2.0,
+      "seatbelt_on": true,
+      "driver_in_seat": true,
+      "driver_eyes_closed_s": 0.0,
+      "driver_attention_ok": true,
+      "map_coverage": true,
+      "ads_fault": false,
+      "dssad_ok": true,
+      "dms_ok": true
+    },
+    "environment": {
+      "visibility_m": 150.0,
+      "rain_mm_per_h": 18.0,
+      "snow_level": "none",
+      "illumination_lux": 200,
+      "glare": false,
+      "fog": true
+    },
+    "dynamic": {
+      "pedestrians_present": false,
+      "two_wheelers_present": false,
+      "animals_over_0_3m": 0,
+      "obstacles_over_0_3m": 0
+    },
+    "sensors": {
+      "camera_degraded": true,
+      "lidar_degraded": true,
+      "confidence_camera": 0.55,
+      "confidence_lidar": 0.50
+    }
+  }
+}

@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odd-suite"
+version = "0.1.0"
+description = "Unified ODD perception suite: Sparse4D 3D detection + ODD attribute classification + ODD judgment"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = []
+
+[project.optional-dependencies]
+attr = ["torch>=2.3", "torchvision", "pillow", "numpy"]
+detect = [
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+    "setuptools==80.9.0",
+    "pytorch-lightning==2.1.0",
+    "torchmetrics>=1.2,<2",
+    "hydra-core==1.3.2",
+    "hydra-colorlog==1.2.0",
+    "pyrootutils",
+    "rich==14.0.0",
+    "tensorboard",
+    "einops>=0.6,<1",
+    "numpy==1.26.4",
+    "pandas==1.5.3",
+    "Pillow==9.5.0",
+    "scipy>=1.10,<2",
+    "scikit-image",
+    "scikit-learn",
+    "pyarrow",
+    "pyquaternion",
+    "opencv-python-headless>=4.7,<4.12",
+    "matplotlib",
+    "shapely>=1.8,<3",
+    "nuscenes-devkit==1.2.0",
+    "pycocotools",
+    "tqdm",
+    "ninja",
+]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+odd-suite = "odd_suite.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["odd_suite*", "odd_judge*"]
+
+[tool.setuptools.package-data]
+"odd_suite.mapping" = ["tables/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = ["vendor", "odd_judge"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]

@@ -1,0 +1,7 @@
+{
+  "Day": 5000,
+  "NightLit": 150,
+  "DawnDusk": 80,
+  "NightUnlit": 20,
+  "_notes": "Representative illumination_lux per lighting class. Glare has no prediction head and is left missing unless a sidecar provides it."
+}

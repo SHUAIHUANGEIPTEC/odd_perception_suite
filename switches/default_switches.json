@@ -1,0 +1,30 @@
+{
+  "global_enabled": true,
+  "by_element": {},
+  "by_rule_type": {},
+  "by_tag": {
+    "road": true,
+    "geometry": true,
+    "lane": true,
+    "marking": true,
+    "junction": true,
+    "structure": true,
+    "temporary": true,
+    "vehicle": true,
+    "motion": true,
+    "environment": true,
+    "weather": true,
+    "illumination": true,
+    "dynamic": true,
+    "vru": true,
+    "obstacle": true,
+    "driver": true,
+    "odc": true,
+    "system": true,
+    "sensor": true,
+    "perception": true
+  },
+  "boundary_warnings_enabled": true,
+  "boundary_severity": "warning",
+  "on_switch_mismatch": "skip"
+}

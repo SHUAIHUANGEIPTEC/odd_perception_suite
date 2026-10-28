@@ -1,0 +1,10 @@
+{
+  "from_detections": true,
+  "default_confidence_camera": 0.95,
+  "default_confidence_lidar": 0.92,
+  "camera_degraded_below": 0.3,
+  "lidar_degraded_below": 0.3,
+  "min_detections_for_conf": 1,
+  "mean_score_as_confidence": true,
+  "_notes": "With >= min_detections_for_conf boxes, confidence_* = mean(detection_score) clamped to [0,1] and *_degraded = conf < threshold. Otherwise the defaults apply. Sidecar values win over these."
+}

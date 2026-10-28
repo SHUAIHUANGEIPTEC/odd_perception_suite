@@ -1,0 +1,35 @@
+{
+  "profile_id": "example_enterprise",
+  "label_zh": "企业扩展示例",
+  "definition_mode": "default",
+  "elements": [
+    {
+      "element_id": "ODC.ENT.1.road_temperature",
+      "path": ["天气环境", "气温"],
+      "label_zh": "路面温度",
+      "requirement": "allowed",
+      "rule_type": "numeric_range",
+      "observation_key": "environment.road_temp_c",
+      "op": "between",
+      "range": [-10.0, 40.0],
+      "boundary_margin": {"mode": "absolute", "value": 2.0},
+      "undefined_as": "allowed",
+      "tags": ["environment", "extension"],
+      "warning_codes": {"boundary": "ENT-TEMP-NEAR", "outside": "ENT-TEMP-001"}
+    },
+    {
+      "element_id": "ODC.ENT.2.tunnel_length",
+      "path": ["道路特征", "特殊设施", "隧道"],
+      "label_zh": "隧道长度",
+      "requirement": "allowed",
+      "rule_type": "numeric_range",
+      "observation_key": "scenery.tunnel_length_m",
+      "op": "<=",
+      "threshold": 5000.0,
+      "boundary_margin": {"mode": "absolute", "value": 200.0},
+      "undefined_as": "allowed",
+      "tags": ["road", "extension"],
+      "warning_codes": {"boundary": "ENT-TUNNEL-NEAR", "outside": "ENT-TUNNEL-001"}
+    }
+  ]
+}

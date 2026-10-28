@@ -1,0 +1,17 @@
+{
+  "roles": {
+    "pedestrian": "vru",
+    "bicycle": "two_wheeler",
+    "motorcycle": "two_wheeler",
+    "barrier": "obstacle",
+    "traffic_cone": "obstacle",
+    "car": "traffic",
+    "truck": "traffic",
+    "bus": "traffic",
+    "trailer": "traffic",
+    "construction_vehicle": "traffic",
+    "animal": "animal"
+  },
+  "default_role": "ignore",
+  "_notes": "traffic = normal surrounding vehicles: counted for debug only, never into obstacles_over_0_3m (BYD TJP is a traffic-jam pilot — nearby vehicles must not trip the obstacle rule). Other profiles may remap traffic classes to 'obstacle'. nuScenes taxonomy has no animals; role 'animal' is an extension hook."
+}

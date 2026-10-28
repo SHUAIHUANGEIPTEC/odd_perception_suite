@@ -1,0 +1,89 @@
+_target_: bev_vae.models.perception.perceptor_dinov3.Perceptor
+load_ema: True
+monitor: null
+backbone:
+  _target_: bev_vae.models.perception.dinov3_official.DINOv3OfficialBackbone
+  arch: vitb16
+  weight_path: /data/ckpt/dinov3_vitb16_pretrain_lvd1689m-73cec8be.pth
+  out_indices: [3, 7, 11]
+  level_num: 3
+  repo_or_dir: null
+  check_hash: False
+  freeze: False
+grid_mask: null
+scene_encoder:
+  _target_: bev_vae.models.perception.dinov3_official.SceneEncoder
+  in_ch: 768
+  out_ch: 96
+  block_num: 6
+  head_num: 3
+  level_num: 3
+  point_num: 3
+  dropout: 0.0
+  bias: False
+  ckpt: ${torch_ckpt}
+  image_size: ${image_size}
+  scene_size: ${scene_size}
+  pc: ${pc}
+  fpn_in_keys: ["c2", "c3", "c4"]
+  fpn_scale_factors: [4.0, 2.0, 1.0]
+  fpn_top_down: True
+connector:
+  _target_: bev_vae.models.perception.connector.MLP
+  in_ch: 768
+  out_ch: 256
+  dropout: 0.0
+  bias: True
+detector:
+  _target_: bev_vae.models.perception.detector.Detector
+  cls_num: ${class_num}
+  reg_num: 10
+  query_num: 900
+  embed_dim: 256
+  block_num: 6
+  head_num: 8
+  level_num: 1
+  point_num: 4
+  dropout: 0.1
+  bias: True
+  flash_attn: ${flash_attn}
+  ckpt: ${torch_ckpt}
+  scene_size: ${scene_size}
+  pc: ${pc}
+  bbox_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.2, 0.2]
+  assigner:
+    _target_: bev_vae.models.perception.assigner.HungarianAssigner
+    cls_weight: 2.0
+    reg_weight: 0.25
+    cls_cost:
+      _target_: bev_vae.models.perception.cost.FocalLossCost
+      alpha: 0.25
+      gamma: 2
+    reg_cost:
+      _target_: bev_vae.models.perception.cost.LpCost
+      p: 1
+  cls_loss:
+    _target_: bev_vae.models.perception.loss.FocalLoss
+    alpha: 0.25
+    gamma: 2
+  reg_loss:
+    _target_: bev_vae.models.perception.loss.LpLoss
+    p: 1
+segmentor: null
+mapper: null
+perspective_aux_head: null
+perspective_aux_loss_weight: 1.0
+sparse4d_head: null
+sparse4d_loss_weight: 1.0
+base_lr: 1.0
+weight_decay: 0.03
+backbone_lr_mult: 0.1
+backbone_adapter_lr_mult: 1.0
+scheduler:
+  _target_: bev_vae.models.scheduler.LambdaWarmUpCosineScheduler
+  warm_up: 500
+  lr_start: 0
+  lr_max: ${real_lr}
+  lr_min: ${real_lr}
+  max_decay: ${max_steps}
+ckpt_path: ${ckpt_path}

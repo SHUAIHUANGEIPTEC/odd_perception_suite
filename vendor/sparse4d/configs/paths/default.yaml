@@ -1,0 +1,7 @@
+root_dir: ${oc.env:PROJECT_ROOT}
+data_dir: ${paths.root_dir}/data/
+log_dir: ${oc.env:OUTPUT_DIR,${paths.root_dir}/outputs}
+output_dir: ${hydra:runtime.output_dir}
+work_dir: ${hydra:runtime.cwd}
+ckpt_dir: ${oc.env:CKPT_DIR,${paths.root_dir}/weights}
+nuscenes_dir: ${oc.env:NUSCENES_DATA_DIR}

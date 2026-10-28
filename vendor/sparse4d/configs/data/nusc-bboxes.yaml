@@ -1,0 +1,9 @@
+defaults:
+  - nusc.yaml
+
+train: 
+  other_sensors: ["LIDAR_TOP"]
+  with_bboxes: True
+val:
+  other_sensors: ["LIDAR_TOP"]
+  with_bboxes: True
