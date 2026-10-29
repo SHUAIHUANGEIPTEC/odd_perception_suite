@@ -16,7 +16,11 @@ from ..core.types import (
     ThresholdSpec,
 )
 from .registry import get_extra_elements
-from .schema import validate_profile_dict, validate_switches_dict
+from .schema import (
+    check_warning_code_duplicates,
+    validate_profile_dict,
+    validate_switches_dict,
+)
 
 
 def _load_json(path: str | Path) -> dict[str, Any]:
@@ -89,8 +93,12 @@ def parse_profile(data: dict[str, Any]) -> tuple[str, DefinitionMode, list[Rule]
     mode = DefinitionMode(data.get("definition_mode", "default"))
     rules = [_parse_rule(el) for el in data["elements"]]
 
-    # Append registry-registered extra elements
-    for el in get_extra_elements().values():
+    # Append registry-registered extra elements (cross-source duplicate check)
+    extras = get_extra_elements()
+    dup_errors = check_warning_code_duplicates(list(data["elements"]) + list(extras.values()))
+    if dup_errors:
+        raise ConfigError("Profile validation failed:\n  " + "\n  ".join(dup_errors))
+    for el in extras.values():
         rules.append(_parse_rule(el))
 
     return profile_id, mode, rules

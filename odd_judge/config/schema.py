@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from ..core.errors import ConfigError
@@ -11,6 +12,8 @@ VALID_RULE_TYPES = {"numeric_range", "qualitative_enum", "qualitative_bool"}
 VALID_OPS = {">=", "<=", ">", "<", "between", "in", "not_in", "==", "!=", "bool"}
 VALID_MARGIN_MODES = {"absolute", "relative"}
 VALID_DEFINITION_MODES = {"permissive", "restrictive", "default"}
+VALID_WARNING_CODE_KEYS = {"outside", "boundary"}
+WARNING_CODE_RE = re.compile(r"^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$")
 
 
 def validate_profile_dict(data: dict[str, Any]) -> list[str]:
@@ -82,6 +85,48 @@ def validate_profile_dict(data: dict[str, Any]) -> list[str]:
                 if bm.get("mode") not in VALID_MARGIN_MODES:
                     errors.append(f"{prefix} ({eid}): invalid boundary_margin.mode")
 
+        wc = el.get("warning_codes")
+        if wc is not None:
+            if not isinstance(wc, dict):
+                errors.append(f"{prefix} ({eid}): warning_codes must be object")
+            else:
+                for key, val in wc.items():
+                    if key not in VALID_WARNING_CODE_KEYS:
+                        errors.append(
+                            f"{prefix} ({eid}): invalid warning_codes key {key!r} "
+                            f"(allowed: outside, boundary)"
+                        )
+                    if not isinstance(val, str) or not WARNING_CODE_RE.match(val):
+                        errors.append(f"{prefix} ({eid}): invalid warning code format: {val!r}")
+
+    errors.extend(check_warning_code_duplicates(elements))
+    return errors
+
+
+def check_warning_code_duplicates(elements: list[Any]) -> list[str]:
+    """Return errors when the same warning code is used by more than one element.
+
+    `boundary` and `outside` codes are counted uniformly; a code may appear
+    at most once across the whole profile (duplicate codes make report
+    consumers unable to attribute a warning to its source element).
+    """
+    errors: list[str] = []
+    code_owners: dict[str, str] = {}
+    for i, el in enumerate(elements):
+        if not isinstance(el, dict):
+            continue
+        eid = el.get("element_id") or f"elements[{i}]"
+        wc = el.get("warning_codes")
+        if not isinstance(wc, dict):
+            continue
+        for val in wc.values():
+            if not isinstance(val, str):
+                continue
+            owner = code_owners.get(val)
+            if owner is None:
+                code_owners[val] = eid
+            elif owner != eid:
+                errors.append(f"duplicate warning code {val!r}: used by {owner} and {eid}")
     return errors
 
 

@@ -72,3 +72,90 @@ def test_parse_profile_from_dict():
     pid, mode, rules = parse_profile(data)
     assert pid == "mini"
     assert len(rules) == 1
+
+
+def _mini_profile(warning_codes_by_id: dict) -> dict:
+    """Build a minimal valid profile with one element per given warning_codes."""
+    return {
+        "profile_id": "mini",
+        "elements": [
+            {
+                "element_id": eid,
+                "requirement": "allowed",
+                "rule_type": "qualitative_bool",
+                "observation_key": "a.b",
+                "expect": True,
+                "warning_codes": wc,
+            }
+            for eid, wc in warning_codes_by_id.items()
+        ],
+    }
+
+
+def test_warning_codes_invalid_key():
+    data = _mini_profile({"x1": {"warn": "X-001"}})
+    errors = validate_profile_dict(data)
+    assert any("invalid warning_codes key" in e for e in errors)
+
+
+def test_warning_codes_invalid_format():
+    data = _mini_profile({"x1": {"outside": "lower case code"}})
+    errors = validate_profile_dict(data)
+    assert any("invalid warning code format" in e for e in errors)
+
+
+def test_warning_codes_duplicate_across_elements():
+    data = _mini_profile(
+        {
+            "x1": {"outside": "X-001", "boundary": "X-NEAR"},
+            "x2": {"boundary": "X-NEAR"},
+        }
+    )
+    errors = validate_profile_dict(data)
+    assert any("duplicate warning code" in e and "X-NEAR" in e for e in errors)
+
+
+def test_warning_codes_valid():
+    data = _mini_profile(
+        {
+            "x1": {"outside": "X-001", "boundary": "X-NEAR"},
+            "x2": {"outside": "X-002"},
+        }
+    )
+    assert validate_profile_dict(data) == []
+
+
+def test_warning_codes_duplicate_via_registry_element():
+    """Plugin-registered elements must not collide with profile codes."""
+    from odd_judge.config import registry
+
+    data = _mini_profile({"x1": {"outside": "X-001"}})
+    registry.register_element(
+        {
+            "element_id": "plug.1",
+            "requirement": "allowed",
+            "rule_type": "qualitative_bool",
+            "observation_key": "a.b",
+            "expect": True,
+            "warning_codes": {"boundary": "X-001"},
+        }
+    )
+    try:
+        with pytest.raises(ConfigError, match="duplicate warning code"):
+            parse_profile(data)
+    finally:
+        registry.clear()
+
+
+def test_warning_codes_doc_up_to_date():
+    """docs/warning_codes.md code tables must match profiles/ (no drift)."""
+    import subprocess
+    import sys
+
+    script = ROOT / "scripts" / "gen_warning_codes_doc.py"
+    res = subprocess.run(
+        [sys.executable, str(script), "--check"],
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0, res.stdout + res.stderr

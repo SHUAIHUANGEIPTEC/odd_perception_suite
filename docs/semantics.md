@@ -82,6 +82,8 @@ severity: OUTSIDE→critical, BOUNDARY→warning, INSIDE→info
 recommendation: INSIDE→continue, BOUNDARY→warn_driver, OUTSIDE→mrm_or_refuse
 ```
 
+逐规则告警码（`reason_code`）的命名规范、完整码表与引擎码见 [`warning_codes.md`](warning_codes.md)。
+
 ## 8. 开关（Switches）
 
 - `global_enabled=false`：全部跳过

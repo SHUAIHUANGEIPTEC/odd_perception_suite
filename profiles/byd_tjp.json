@@ -489,7 +489,7 @@
       "threshold": 0.6,
       "boundary_margin": {"mode": "absolute", "value": 0.05},
       "tags": ["sensor", "perception"],
-      "warning_codes": {"boundary": "PER-CONF-NEAR", "outside": "PER-CONF-001"}
+      "warning_codes": {"boundary": "PER-CAM-CONF-NEAR", "outside": "PER-CONF-001"}
     },
     {
       "element_id": "ODC.7.1.4.lidar_confidence",
@@ -502,7 +502,7 @@
       "threshold": 0.6,
       "boundary_margin": {"mode": "absolute", "value": 0.05},
       "tags": ["sensor", "perception"],
-      "warning_codes": {"boundary": "PER-CONF-NEAR", "outside": "PER-CONF-002"}
+      "warning_codes": {"boundary": "PER-LIDAR-CONF-NEAR", "outside": "PER-CONF-002"}
     }
   ]
 }

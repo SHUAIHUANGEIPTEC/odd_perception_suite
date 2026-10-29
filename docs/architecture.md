@@ -54,7 +54,7 @@
    避免 TJP 域内正常车流误触 `obstacles_over_0_3m<=0` 的越界规则。
 3. **组装**：`ObservationBuilder` 合并各字段组，优先级 sidecar > 显式 > 映射默认。
 4. **判决**：`OddJudge.evaluate(observation)` → `JudgmentReport`
-   （状态 × 严重度 × 建议 + 逐规则裕度/告警码）。
+   （状态 × 严重度 × 建议 + 逐规则裕度/告警码，码值见 [docs/warning_codes.md](warning_codes.md)）。
 5. **报告**：`report/render.py` 输出合订文本/JSON。
 
 ## 不可变性

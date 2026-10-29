@@ -117,6 +117,7 @@ pytest -q tests/
 - `docs/adapters.md` — 编写新适配器（CAN/地图/其他检测器）
 - `docs/env_setup.md` — 三套环境配方（core / attr / detect）
 - `docs/semantics.md` — ODD 判决语义（ISO 34503）
+- `docs/warning_codes.md` — 告警码参考（命名规范、自动码表、引擎码）
 - `docs/training/README.md` — 训练代码出处（不在本仓）
 - `vendor/sparse4d/VENDOR.md` — 检测运行时来源与运行要求
 
