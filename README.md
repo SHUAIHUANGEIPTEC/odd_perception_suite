@@ -67,6 +67,20 @@ odd-suite run --detect-ckpt weights/sparse4d_last.ckpt \
   --sidecar examples/sidecar_highway.json
 ```
 
+## 测试
+
+```bash
+# 核心用例（judge / mapping / pipeline / CLI，零第三方依赖，跳过 smoke_attr）
+pytest -q tests/ -k "not smoke_attr"
+
+# 全量（含 test_smoke_attr：真权重加载 + 224 前向，需 attr 环境，CPU torch 即可）
+pip install -e ".[attr,dev]"        # torch / torchvision / numpy / pillow + pytest
+pytest -q tests/
+```
+
+`test_smoke_attr` 读取 `weights/attr_best.pth`（缺失时自动 skip）。
+三套环境配方（core / attr / detect）与依赖冲突说明见 `docs/env_setup.md`。
+
 ## 仓库结构
 
 | 路径 | 内容 |

@@ -16,9 +16,9 @@ CHECKPOINT = weights_dir() / "attr_best.pth"
 
 @pytest.mark.skipif(not CHECKPOINT.exists(), reason="attr_best.pth not present")
 def test_checkpoint_loads_and_predicts(tmp_path):
-    PIL = pytest.importorskip("PIL")
+    Image = pytest.importorskip("PIL.Image")
     image = tmp_path / "probe.png"
-    PIL.Image.new("RGB", (224, 224), (120, 130, 150)).save(image)
+    Image.new("RGB", (224, 224), (120, 130, 150)).save(image)
 
     classifier = AttrClassifier(CHECKPOINT, device="cpu")
     result = classifier.predict(image)
