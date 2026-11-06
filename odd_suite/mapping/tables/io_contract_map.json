@@ -513,8 +513,8 @@
       "id": "timing_alignment",
       "title": "多源频率 1~100Hz 的判决节拍与观测过期",
       "detail": "环境 1Hz、动态 10Hz、自车 100Hz；suite 单帧/JSONL 流判决，无 max_age 规则。",
-      "resolution": "约定：判决节拍 10Hz，逐字段带 timestamp，超时(如环境 >2s)按缺失回退。",
-      "status": "待约定"
+      "resolution": "草案已起草：docs/judgment_timing_convention.md（DRAFT v0.1）——离线逐帧/在线拟议 10Hz，字段组 max_age=源周期×5，过期=装配层不写键→missing_policy 回退（引擎零改动）；staleness 过滤实现点与数值待联席确认。",
+      "status": "已起草待联席"
     }
   ]
 }
