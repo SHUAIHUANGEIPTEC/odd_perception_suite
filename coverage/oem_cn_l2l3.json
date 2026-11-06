@@ -1,0 +1,292 @@
+{
+  "coverage_id": "oem_cn_l2l3_v1",
+  "label_zh": "ODD 判据维度 × 主机厂覆盖度分层（中国量产 L2+/L3 口径）",
+  "as_of": "2026-11",
+  "scope_zh": "中国量产 L2+/L3 参照系（理想 / 小鹏 / 华为 ADS / 蔚来 / 比亚迪 TJP）的公开资料推断；不含 Robotaxi 与国际 OEM 对比",
+  "evidence_basis": [
+    "厂商用户手册 / 智能驾驶功能说明书的 ODD 章节",
+    "GB/T 45312 智能驾驶 TJP 准入要求、GB/T 43267 自动驾驶功能通用要求",
+    "ISO 34503 ODD 要素与声明格式",
+    "公开召回、事故调查与功能退出/接管提示的产品形态"
+  ],
+  "tier_definitions": {
+    "mandatory": "法规或准入文件要求，量产功能激活/退出必须依赖；几乎所有主机厂做",
+    "mainstream": "无量产强标逐条要求，但不做会在常见场景出事或影响可用性；量产主流都做",
+    "leading": "自研 Tier1、城市 NOA 或 L3 安全论证才做；多数主机厂仅写入手册而不上线判据",
+    "rare": "基本不做的维度；量产的等价物是简化监测，而非该维度本身"
+  },
+  "source_enum": ["perception", "map_adas", "chassis", "dms", "static_config", "inference"],
+  "source_definitions_zh": {
+    "perception": "环境感知链路的在线输出（视觉/激光/融合）",
+    "map_adas": "ADAS 地图 + 高精定位链路，感知不参与兜底",
+    "chassis": "底盘/车身 CAN 信号（车速、横摆角速度、IMU）",
+    "dms": "驾驶员监控子系统，独立于环境感知",
+    "static_config": "静态配置/白名单/OTA 下发的 ODD 声明值",
+    "inference": "由其他信号间接推断，无量测量"
+  },
+  "layer_enum": ["declared", "online_judged", "closed_loop_verified"],
+  "layer_definitions_zh": {
+    "declared": "写进用户手册、功能说明书或安全论证的 ODD 条目",
+    "online_judged": "运行时存在判据、能触发降级/接管/MRM 提示（含 gate 型判据）",
+    "closed_loop_verified": "判据有可量测的感知输入 + 定量阈值 + 可审计记录"
+  },
+  "summary_zh": {
+    "declared": 17,
+    "online_judged": 12,
+    "stable_degradation": 8,
+    "closed_loop_verified": 6,
+    "note": "online_judged 中的 ood_confidence 是 gate 而非独立维度，按独立维度口径为 11；stable_degradation 指真正会造成功能降级/退出请求的判据数，介于两者之间。四个数字的含义不同，不可混用。"
+  },
+  "dimensions": [
+    {
+      "dim_id": "road_type",
+      "label_zh": "道路类型",
+      "perception_item": "out/map_topology, out/lane_geometry",
+      "actual_source": "map_adas",
+      "tier": "mandatory",
+      "layers": ["declared", "online_judged"],
+      "threshold_source": "regulation",
+      "profile_elements": ["ODC.1.1.1.road_type"],
+      "gap_zh": null,
+      "note_zh": "全员做，但判据来自地图匹配置信度而非感知分类；只有无图/纯视觉路线才用视觉补位。地图匹配置信度低时判未决。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "curve_radius",
+      "label_zh": "道路曲率",
+      "perception_item": "out/lane_geometry.curvature",
+      "actual_source": "map_adas",
+      "tier": "mainstream",
+      "layers": ["declared", "online_judged", "closed_loop_verified"],
+      "threshold_source": "oem_declared",
+      "profile_elements": ["ODC.1.2.1.curve_radius"],      "gap_zh": null,
+      "note_zh": "多数实现用车速 × 横摆角速度或地图曲率作代理量，视觉车道曲率只有城市 NOA 玩家真做；closed_loop_verified 一项对应后者。",
+      "confidence": "medium"
+    },
+    {
+      "dim_id": "longitudinal_grade",
+      "label_zh": "道路坡度",
+      "perception_item": "out/lane_geometry.slope, out/ego_attitude.pitch",
+      "actual_source": "chassis",
+      "tier": "leading",
+      "layers": ["declared"],
+      "threshold_source": "oem_declared",
+      "profile_elements": ["ODC.1.2.2.longitudinal_grade", "ODC.1.2.3.cross_slope"],
+      "gap_zh": null,
+      "note_zh": "IMU/底盘 pitch 主要做控制前馈与交叉校验，很少升级为 ODD 判据；手册偶见「坡度 ≤ X%」的声明。",
+      "confidence": "medium"
+    },
+    {
+      "dim_id": "lane_width",
+      "label_zh": "车道宽度",
+      "perception_item": "out/lane_geometry.width",
+      "actual_source": "perception",
+      "tier": "mainstream",
+      "layers": ["declared", "online_judged", "closed_loop_verified"],
+      "threshold_source": "oem_declared",
+      "profile_elements": ["ODC.1.2.4.lane_width"],
+      "gap_zh": null,
+      "note_zh": "窄车道、收费站、施工窄道触发降级；阈值多为 2.5 / 2.8 m 经验值。车道线质量差时应判未决而不是判域内。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "weather_type",
+      "label_zh": "气象类型",
+      "perception_item": "out/env_summary.weather",
+      "actual_source": "perception",
+      "tier": "mainstream",
+      "layers": ["declared", "online_judged", "closed_loop_verified"],
+      "threshold_source": "oem_declared",
+      "profile_elements": ["ODC.3.1.2.rain_intensity", "ODC.3.1.3.snow_level", "ODC.3.1.6.fog"],
+      "gap_zh": null,
+      "note_zh": "行业普遍只做雨/雪/雾三态，多标签与定量雨量极少；大量厂商用雨刮档位 + 视觉分类的混合信号，精度有限。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "visibility",
+      "label_zh": "能见度",
+      "perception_item": "out/env_summary.vis_bin",
+      "actual_source": "perception",
+      "tier": "mainstream",
+      "layers": ["declared", "online_judged", "closed_loop_verified"],
+      "threshold_source": "oem_declared",
+      "profile_elements": ["ODC.3.1.1.visibility"],
+      "gap_zh": null,
+      "note_zh": "档位判普遍，且多由雾灯/前车/视觉档位代理；用米做定量判据的少，L3 手册里才有 ≥100 m 这类硬值。YOLO v1 单向判高需保守化。",
+      "confidence": "medium"
+    },
+    {
+      "dim_id": "illumination",
+      "label_zh": "光照",
+      "perception_item": "out/env_summary.illumination",
+      "actual_source": "perception",
+      "tier": "mandatory",
+      "layers": ["declared", "online_judged", "closed_loop_verified"],
+      "threshold_source": "oem_declared",
+      "profile_elements": ["ODC.3.1.4.illumination", "ODC.3.1.5.glare"],
+      "gap_zh": null,
+      "note_zh": "全员做；无照明夜间是最常见的功能边界，强眩光/逆光通常与照明合并处理。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "road_friction",
+      "label_zh": "路面附着",
+      "perception_item": "out/env_summary.road_cond + material",
+      "actual_source": "inference",
+      "tier": "leading",
+      "layers": ["declared"],
+      "threshold_source": "oem_declared",
+      "profile_elements": [],
+      "extension_elements": ["ODC.1.5.1.road_friction"],
+      "gap_zh": null,
+      "note_zh": "行业惯例是声明禁用（结冰/积雪/积水）而不是在线量测 μ。本仓由 friction_env.json 把分类标签查表成 μ 代理（干 0.85 / 湿 0.6 / 积雪 0.3，再乘材料上限），元素在 odc_ext_cn 中。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "agent_type",
+      "label_zh": "交通参与者类型",
+      "perception_item": "out/dyn_objects.type",
+      "actual_source": "perception",
+      "tier": "mandatory",
+      "layers": ["declared", "online_judged", "closed_loop_verified"],
+      "threshold_source": "oem_declared",
+      "profile_elements": [
+        "ODC.4.1.1.pedestrian",
+        "ODC.4.1.2.two_wheeler",
+        "ODC.4.1.3.animal",
+        "ODC.4.1.4.obstacle"
+      ],
+      "gap_zh": null,
+      "note_zh": "全员做（AEB/LCC 必需）；『未知』类型须判未决而不是判域内。车流在本 profile 中不计入障碍物。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "traffic_density",
+      "label_zh": "交通密度",
+      "perception_item": "out/traffic_density",
+      "actual_source": "perception",
+      "tier": "leading",
+      "layers": ["declared"],
+      "threshold_source": "oem_declared",
+      "profile_elements": [],
+      "extension_elements": ["ODC.4.2.1.traffic_density"],
+      "gap_zh": null,
+      "note_zh": "在线定量密度少做，多数用前车时距或拥堵等级代理，真做的是城市 NOA 博弈与 Robotaxi。本仓只能用画面内 traffic 目标数当代理（检测框是全局坐标，无自车位姿做不了半径计数），元素在 odc_ext_cn 中，阈值是占位默认值。",
+      "confidence": "medium"
+    },
+    {
+      "dim_id": "speed",
+      "label_zh": "速度",
+      "perception_item": "out/ego_kinematics.vel",
+      "actual_source": "chassis",
+      "tier": "mandatory",
+      "layers": ["declared", "online_judged"],
+      "threshold_source": "regulation",
+      "profile_elements": [
+        "ODC.2.1.1.speed",
+        "ODC.2.1.2.activation_speed",
+        "ODC.2.1.3.lat_accel",
+        "ODC.2.1.4.lon_accel"
+      ],
+      "gap_zh": null,
+      "note_zh": "覆盖度最高的维度，直接硬判，无感知依赖；横向/纵向加速度在本 profile 中并入速度类一并评估。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "geofence",
+      "label_zh": "地理围栏",
+      "perception_item": "out/geofence",
+      "actual_source": "map_adas",
+      "tier": "mandatory",
+      "layers": ["declared", "online_judged"],
+      "threshold_source": "regulation",
+      "profile_elements": ["ODC.1.1.2.road_area", "ODC.6.1.1.map_coverage"],
+      "gap_zh": null,
+      "note_zh": "L4 以电子围栏多边形实现；L2+ 以「开城白名单 / 已开放道路」等价形式存在，通常不叫 geofence。越界即 OUT。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "speed_limit",
+      "label_zh": "限速",
+      "perception_item": "out/t_sr.value",
+      "actual_source": "map_adas",
+      "tier": "mandatory",
+      "layers": ["declared", "online_judged"],
+      "threshold_source": "regulation",
+      "profile_elements": [],
+      "extension_elements": ["ODC.2.1.5.speed_limit"],
+      "gap_zh": null,
+      "note_zh": "限速判据全员做（法规驱动），来源以地图限速属性为主、视觉识标为补。本仓无地图适配器，限速只能来自侧车，判决用派生的 vehicle.overspeed_kmh，元素在 odc_ext_cn 中并带 undefined_as=allowed。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "signal_state",
+      "label_zh": "信号灯状态",
+      "perception_item": "out/t_tl.state",
+      "actual_source": "perception",
+      "tier": "leading",
+      "layers": ["declared"],
+      "threshold_source": "regulation",
+      "profile_elements": [],
+      "extension_elements": ["ODC.1.5.1.traffic_light_state"],
+      "gap_zh": null,
+      "note_zh": "把信号灯状态纳入 ODD 判据的是少数；多数厂商只把它当功能输入（跟停/跟走）。本仓由 profiles/overrides/city_noa_cn.json 承载：放开路口禁令 + 信号灯状态合规 + 路口类型必标注，数据来自地图/V2X SPaT。纯视觉方案需另加 2D 信号灯头与车道关联，见 docs/oem_practice.md 第 5 节。",
+      "confidence": "medium"
+    },
+    {
+      "dim_id": "driver_status",
+      "label_zh": "驾乘人员状态",
+      "perception_item": "out/driver_status",
+      "actual_source": "dms",
+      "tier": "mandatory",
+      "layers": ["declared", "online_judged"],
+      "threshold_source": "regulation",
+      "profile_elements": [
+        "ODC.5.1.1.seatbelt",
+        "ODC.5.1.2.driver_in_seat",
+        "ODC.5.1.3.eyes_closed",
+        "ODC.5.1.4.driver_attention",
+        "ODC.6.1.4.dms_ok"
+      ],
+      "gap_zh": null,
+      "note_zh": "全员做，但属独立 DMS 子系统，架构上归 ODC「人」要素，不应算进环境感知的 ODD 维度。",
+      "confidence": "high"
+    },
+    {
+      "dim_id": "temp_event",
+      "label_zh": "施工/异常事件",
+      "perception_item": "event/anomaly + out/stat_objects",
+      "actual_source": "perception",
+      "tier": "mainstream",
+      "layers": ["declared"],
+      "threshold_source": "oem_declared",
+      "profile_elements": [
+        "ODC.1.4.6.construction",
+        "ODC.1.4.7.accident_scene",
+        "ODC.1.4.8.traffic_control"
+      ],
+      "gap_zh": null,
+      "sub_events": ["道路施工", "事故现场", "交通管制"],
+      "note_zh": "手册静态声明（禁用）全员做；在线硬判只有 L3/L4 做。L2+ 主流只做「提示接管」软处理，被邻车道锥桶或路边事故触发接管是典型形态。",
+      "confidence": "medium"
+    },
+    {
+      "dim_id": "ood_confidence",
+      "label_zh": "OOD 可信度",
+      "perception_item": "out/idc, out/mobc, out/robc, out/low_quality_id",
+      "actual_source": "perception",
+      "tier": "rare",
+      "layers": ["declared", "online_judged"],
+      "threshold_source": "oem_declared",
+      "profile_elements": [
+        "ODC.7.1.1.camera_degraded",
+        "ODC.7.1.2.lidar_degraded",
+        "ODC.7.1.3.camera_confidence",
+        "ODC.7.1.4.lidar_confidence"
+      ],
+      "gap_zh": null,
+      "note_zh": "作为独立正交维度做成量产品的基本没有；量产的等价物是感知可用性/遮挡检测/传感器健康度（L3 强标才强制退化检测）。定位是 gate——先判能否采信感知，再判维度，不是第 17 个维度。",
+      "confidence": "high"
+    }
+  ]
+}
