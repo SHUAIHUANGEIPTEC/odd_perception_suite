@@ -59,3 +59,4 @@ vendor/sparse4d/eval_results/
 *.swp
 *~
 .cache/
+uv.lock
