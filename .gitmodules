@@ -1,3 +1,3 @@
 [submodule "judge"]
 	path = judge
-	url = /home/shuai/projects/ODD_Judge
+	url = ../odd_judge.git
