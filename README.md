@@ -128,6 +128,7 @@ pytest -q tests/
 - `docs/semantics.md` — ODD 判决语义（ISO 34503）
 - `docs/warning_codes.md` — 告警码参考（命名规范、自动码表、引擎码）
 - `docs/oem_practice.md` — ODD 维度 × 主机厂覆盖度分层（行业实践口径，不产生判决规则）
+- `docs/io_contract_review.md` — 《感知输入输出数据定义.xlsx》接口评审：字段映射、修订请求、验收基线
 - `docs/training/README.md` — 训练代码出处（不在本仓）
 - `vendor/sparse4d/VENDOR.md` — 检测运行时来源与运行要求
 

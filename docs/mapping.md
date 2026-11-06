@@ -3,6 +3,10 @@
 映射表全部在 `odd_suite/mapping/tables/*.json`，可整体覆写（`--mapping-dir` / `PipelineConfig.mapping_dir`）。
 映射层为纯 Python，无 torch。
 
+其中 `io_contract_map.json` 是**接口契约映射**（判据 63 个 `observation_key` ← 感知输出
+`out/*` 字段的来源/派生/单位/缺口声明，评审背景见 [`io_contract_review.md`](io_contract_review.md)），
+不参与运行时映射，由 `tests/test_io_contract_map.py` 与 profiles 同步守卫。
+
 ## 优先级
 
 ```

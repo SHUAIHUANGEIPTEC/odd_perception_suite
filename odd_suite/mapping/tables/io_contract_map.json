@@ -1,0 +1,513 @@
+{
+  "_meta": {
+    "purpose": "感知输出数据定义表(字段字典) → 判据引擎 observation_key 的接口契约映射。每条 profile 规则消费的字段在这里声明来源、派生式、单位换算与缺口；由 tests/test_io_contract_map.py 守卫与 profiles/ 同步。",
+    "source_doc": "/home/shuai/WorkBuddy/workbuddy/output/感知输入输出数据定义.xlsx",
+    "source_date": "2026-11-03",
+    "review_doc": "docs/io_contract_review.md",
+    "judge_contract": "odd_judge 规则经 Observation.fields 点路径取标量/枚举/列表；点云、栅格、mask、热图等张量不进判据。",
+    "statuses": {
+      "covered": "感知输出表已有对应字段（可含单位换算/布尔派生）",
+      "convention": "有近似来源但需双方约定：量化方式、派生式或语义澄清",
+      "gap": "感知输出表缺字段，已在 docs/io_contract_review.md 提出修订请求"
+    }
+  },
+  "keys": {
+    "scenery.road_type": {
+      "status": "covered",
+      "source": "out/map_topology",
+      "derive": "道路类型枚举(高速/城市/乡村/匝道/隧道)",
+      "unit": "枚举一致",
+      "note": "输出行需显式携带 road_class（输入表 map/attributes 已有）"
+    },
+    "scenery.curve_radius_m": {
+      "status": "convention",
+      "source": "out/lane_geometry.curvature",
+      "derive": "radius_m = 1/|κ|；κ≈0 → 按直道处理(clamp 到 profile 上限)",
+      "unit": "1/m → m",
+      "note": "建议感知侧直接给 curvature 及其误差区间，换算在映射层做"
+    },
+    "scenery.lane_width_m": {
+      "status": "covered",
+      "source": "out/lane_geometry.width",
+      "derive": null,
+      "unit": "m",
+      "note": ""
+    },
+    "scenery.longitudinal_grade_pct": {
+      "status": "covered",
+      "source": "out/lane_geometry.slope",
+      "derive": "若输出为 rad：grade_pct = tan(pitch)×100",
+      "unit": "rad/% → %",
+      "note": "可与 out/ego_attitude.pitch 交叉验证"
+    },
+    "scenery.cross_slope_pct": {
+      "status": "convention",
+      "source": "out/ego_attitude.roll",
+      "derive": "cross_slope_pct ≈ tan(roll)×100",
+      "unit": "rad → %",
+      "note": "输出表无直接横坡字段；roll 派生为近似（悬架/侧倾污染），建议补 out/lane_geometry.cross_slope"
+    },
+    "scenery.has_intersection": {
+      "status": "covered",
+      "source": "out/map_topology",
+      "derive": "junction_type != none",
+      "unit": "bool",
+      "note": ""
+    },
+    "scenery.has_ramp": {
+      "status": "covered",
+      "source": "out/map_topology",
+      "derive": "ramp 标志/匝道类型存在",
+      "unit": "bool",
+      "note": ""
+    },
+    "scenery.has_roundabout": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "bool",
+      "requested": "out/map_topology 增加 junction_subtype 或 has_roundabout(bool)",
+      "note": "输入/输出表均未覆盖环岛"
+    },
+    "scenery.has_toll_station": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "bool",
+      "requested": "out/map_topology 或新增 out/poi_flags 携带 has_toll_station",
+      "note": "收费站属设施语义，地图要素输入也未列"
+    },
+    "scenery.has_railway_crossing": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "bool",
+      "requested": "out/map_topology 或 out/poi_flags 携带 has_railway_crossing",
+      "note": "同上，设施语义缺失"
+    },
+    "scenery.has_no_marking": {
+      "status": "convention",
+      "source": "out/lane_geometry",
+      "derive": "约定：无车道线检出且 freespace/地图指示道路可通行 → true",
+      "unit": "bool",
+      "note": "缺『无标线』显式标志；检出为空 ≠ 无标线，需语义约定或补字段"
+    },
+    "scenery.marking_clear": {
+      "status": "convention",
+      "source": "out/lane_geometry",
+      "derive": "约定：车道线 quality/几何误差区间达标 → true",
+      "unit": "bool",
+      "note": "需定义 quality 阈值口径（输出行仅有『几何误差区间』）"
+    },
+    "scenery.legal_l3_area": {
+      "status": "covered",
+      "source": "out/geofence",
+      "derive": "inside == true",
+      "unit": "bool",
+      "note": "L3 合法区域即 ODD 电子围栏语义"
+    },
+    "scenery.traffic_control": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "bool",
+      "requested": "新增 out/traffic_control(bool+type)：人工指挥/临时管制",
+      "note": "输入表 event/anomaly 也未含交通管制"
+    },
+    "scenery.accident_scene": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "bool",
+      "requested": "输出表补 out/anomaly（对应输入表 event/anomaly）：type 含 accident",
+      "note": "输入表有 event/anomaly，输出表整行缺失——修订请求 1"
+    },
+    "scenery.construction_zone": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "bool",
+      "requested": "同 out/anomaly：type 含 construction",
+      "note": "同上"
+    },
+    "environment.rain_mm_per_h": {
+      "status": "convention",
+      "source": "out/env_summary.weather",
+      "derive": "档位 0~3 → 保守代表值表（仿 visibility_env.json 模式）",
+      "unit": "档位 → mm/h",
+      "note": "档位无法支撑数值边界带；修订请求 2 要求补代表值+区间"
+    },
+    "environment.snow_level": {
+      "status": "convention",
+      "source": "out/env_summary.weather",
+      "derive": "多标签 snow + intensity 档 → level",
+      "unit": "档位 0~3",
+      "note": "同上，需档位口径确认（积雪深度 vs 降雪强度）"
+    },
+    "environment.fog": {
+      "status": "covered",
+      "source": "out/env_summary.weather",
+      "derive": "weather[N] 含 fog/haze 多标签",
+      "unit": "bool",
+      "note": ""
+    },
+    "environment.visibility_m": {
+      "status": "convention",
+      "source": "out/env_summary.vis_bin",
+      "derive": "4 档 → 保守代表值（odd_suite/mapping/tables/visibility_env.json 已实现：GE500→2000 等）",
+      "unit": "档位 → m",
+      "note": "换算层已存在；档位粒度限制 BOUNDARY 裕度精度"
+    },
+    "environment.illumination_lux": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "lux",
+      "requested": "out/env_summary 增加 illumination_lux 数值（或区间）",
+      "note": "byd_tjp 按 lux 数值设阈值；输出仅有类别枚举"
+    },
+    "environment.glare": {
+      "status": "covered",
+      "source": "out/env_summary.illum",
+      "derive": "illum 附带逆光标志",
+      "unit": "bool",
+      "note": ""
+    },
+    "dynamic.pedestrians_present": {
+      "status": "covered",
+      "source": "out/dyn_objects",
+      "derive": "按角色聚合：type==person/pedestrian → vru",
+      "unit": "bool",
+      "note": "odd_suite/mapping dynamic_rollup 已实现角色映射"
+    },
+    "dynamic.two_wheelers_present": {
+      "status": "covered",
+      "source": "out/dyn_objects",
+      "derive": "type∈{bicycle,motorcycle} → two_wheeler",
+      "unit": "bool",
+      "note": ""
+    },
+    "dynamic.animals_over_0_3m": {
+      "status": "covered",
+      "source": "out/dyn_objects",
+      "derive": "role=animal 且 h≥0.3m",
+      "unit": "bool",
+      "note": ""
+    },
+    "dynamic.obstacles_over_0_3m": {
+      "status": "covered",
+      "source": "out/dyn_objects + out/stat_objects",
+      "derive": "role∈{obstacle,…} 且 h≥0.3m；traffic 角色按 dynamic_roles 排除（TJP 口径）",
+      "unit": "bool",
+      "note": "『未知』type 处理见 conflicts.unknown_role_ignore"
+    },
+    "sensors.camera_degraded": {
+      "status": "covered",
+      "source": "out/ego_system",
+      "derive": "传感器健康：相机 在线/脏污/遮挡/标定异常 → degraded",
+      "unit": "bool",
+      "note": ""
+    },
+    "sensors.lidar_degraded": {
+      "status": "covered",
+      "source": "out/ego_system",
+      "derive": "同上，激光雷达通道",
+      "unit": "bool",
+      "note": ""
+    },
+    "sensors.confidence_camera": {
+      "status": "convention",
+      "source": "out/robc | out/idc",
+      "derive": "约定：相机任务级置信（或 IDC 三类归因中图像相关分量）",
+      "unit": "0~1",
+      "note": "输出表无 per-sensor/per-task 置信度；修订请求 1 请求补 out/sensor_conf"
+    },
+    "sensors.confidence_lidar": {
+      "status": "convention",
+      "source": "out/robc | out/idc",
+      "derive": "同上，激光通道",
+      "unit": "0~1",
+      "note": "同上"
+    },
+    "vehicle.activation_speed_kmh": {
+      "status": "convention",
+      "source": "out/ego_kinematics + out/ego_system",
+      "derive": "系统『激活/可用』状态成立时的当前车速",
+      "unit": "m/s → km/h",
+      "note": "ego_system 需明确含 ADS 激活状态枚举"
+    },
+    "vehicle.ads_fault": {
+      "status": "covered",
+      "source": "out/ego_system",
+      "derive": "系统状态 ∈ {降级,故障}",
+      "unit": "bool",
+      "note": ""
+    },
+    "vehicle.dms_ok": {
+      "status": "convention",
+      "source": "out/driver_status",
+      "derive": "约定：DMS 在线且未报故障 → true（区别于驾驶员状态本身）",
+      "unit": "bool",
+      "note": "输出表『驾乘人员』是人的状态，缺 DMS 设备健康通道"
+    },
+    "vehicle.driver_attention_ok": {
+      "status": "covered",
+      "source": "out/driver_status",
+      "derive": "注意力/分心字段取反",
+      "unit": "bool",
+      "note": ""
+    },
+    "vehicle.driver_eyes_closed_s": {
+      "status": "convention",
+      "source": "out/driver_status",
+      "derive": "闭眼状态持续时长 s（DMS 侧累计）",
+      "unit": "s",
+      "note": "输出为枚举/0~1 评分时无法支撑『闭眼 ≥X 秒』数值规则——修订请求 2"
+    },
+    "vehicle.driver_in_seat": {
+      "status": "covered",
+      "source": "out/driver_status",
+      "derive": "在座标志",
+      "unit": "bool",
+      "note": ""
+    },
+    "vehicle.dssad_ok": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "bool",
+      "requested": "out/ego_system 增加 dssad_ok(bool)（数据记录系统自检）",
+      "note": "输出表无 DSSAD 通道"
+    },
+    "vehicle.lat_accel_mps2": {
+      "status": "covered",
+      "source": "out/ego_kinematics",
+      "derive": "accel 横向分量",
+      "unit": "m/s²",
+      "note": ""
+    },
+    "vehicle.lon_accel_mps2": {
+      "status": "covered",
+      "source": "out/ego_kinematics",
+      "derive": "accel 纵向分量",
+      "unit": "m/s²",
+      "note": ""
+    },
+    "vehicle.map_coverage": {
+      "status": "covered",
+      "source": "out/map_topology",
+      "derive": "地图匹配置信度",
+      "unit": "0~1",
+      "note": "低匹配→判据侧对 scenery 类走未决（见 missing_policy 提案）"
+    },
+    "vehicle.seatbelt_on": {
+      "status": "covered",
+      "source": "out/driver_status",
+      "derive": "安全带标志",
+      "unit": "bool",
+      "note": "输出行备注含安全带"
+    },
+    "vehicle.speed_kmh": {
+      "status": "covered",
+      "source": "out/ego_kinematics.vel",
+      "derive": "|v|×3.6",
+      "unit": "m/s → km/h",
+      "note": ""
+    },
+    "scenery.intersection_type": {
+      "status": "covered",
+      "source": "out/map_topology",
+      "derive": "junction_type / 匝道-路口类型枚举",
+      "unit": "枚举",
+      "note": "city_noa_cn override 使用"
+    },
+    "scenery.traffic_light_state": {
+      "status": "covered",
+      "source": "out/t_tl",
+      "derive": "state 枚举(红/黄/绿/闪烁/箭头/熄灭/不可见)",
+      "unit": "枚举",
+      "note": "『无灯路口须标注不可见/无灯』与 profile 未知值保守语义一致"
+    },
+    "environment.road_temp_c": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "°C",
+      "requested": "out/env_summary 增加 road_temp_c（路面温度传感器/估算）",
+      "note": "example_enterprise override 消费"
+    },
+    "scenery.tunnel_length_m": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "m",
+      "requested": "out/map_topology 增加 tunnel_length_m（地图要素）",
+      "note": "输入表 map/attributes 有隧道类型，无长度；输出表未列"
+    },
+    "dynamic.surrounding_vehicles": {
+      "status": "covered",
+      "source": "out/traffic_density",
+      "derive": "辆/km 或当前车道邻域 traffic 角色计数",
+      "unit": "辆/km 或 count",
+      "note": "odc_ext_cn 扩展维度"
+    },
+    "environment.friction_mu": {
+      "status": "gap",
+      "source": null,
+      "derive": null,
+      "unit": "μ 0~1",
+      "requested": "out/env_summary 增加 friction_mu（输入表 env/road_surface 已有附着系数估计，输出丢弃了）",
+      "note": "odc_ext_cn 摩擦度规则直接消费；结冰/积雪为高危边界"
+    },
+    "vehicle.overspeed_kmh": {
+      "status": "convention",
+      "source": "out/t_sr.value | out/map_topology.speed_limit",
+      "derive": "overspeed_kmh = max(0, ego_speed − limit)",
+      "unit": "m/s − km/h → km/h",
+      "note": "限速源二选一需约定优先级（标志动态 vs 地图标注）"
+    },
+    "dynamic.agent_type": {
+      "status": "covered",
+      "source": "out/dyn_objects.type",
+      "derive": "参与方类型枚举",
+      "unit": "枚举",
+      "note": "odc_skeleton 骨架元素"
+    },
+    "environment.illumination_type": {
+      "status": "covered",
+      "source": "out/env_summary.illum",
+      "derive": "白天/晨昏/有照明夜间/无照明夜间",
+      "unit": "枚举",
+      "note": ""
+    },
+    "environment.weather_type": {
+      "status": "covered",
+      "source": "out/env_summary.weather",
+      "derive": "多标签天气枚举",
+      "unit": "枚举",
+      "note": ""
+    },
+    "scenery.edge_type": {
+      "status": "convention",
+      "source": "out/lane_geometry.boundary",
+      "derive": "边界线形分类（路沿/护栏/绿化）",
+      "unit": "枚举",
+      "note": "输出行只声明 pts 线形，类型枚举需约定"
+    },
+    "scenery.geometry_type": {
+      "status": "convention",
+      "source": "out/lane_geometry",
+      "derive": "由 curvature/slope/width 组合分类（直/弯/坡道…）",
+      "unit": "派生枚举",
+      "note": "分类规则待定义"
+    },
+    "scenery.junction_type": {
+      "status": "covered",
+      "source": "out/map_topology",
+      "derive": "路口/匝道类型",
+      "unit": "枚举",
+      "note": ""
+    },
+    "scenery.lane_type": {
+      "status": "convention",
+      "source": "out/lane_geometry + out/map_topology",
+      "derive": "车道类型（单车道/多车道/应急车道…）",
+      "unit": "枚举",
+      "note": "需约定由哪侧权威给出"
+    },
+    "scenery.light_type": {
+      "status": "covered",
+      "source": "out/t_tl",
+      "derive": "信号灯类型/状态",
+      "unit": "枚举",
+      "note": "ODC light_type 口径以 GB/T 45312 为准"
+    },
+    "scenery.sign_type": {
+      "status": "covered",
+      "source": "out/t_sr",
+      "derive": "标志类型枚举",
+      "unit": "枚举",
+      "note": ""
+    },
+    "scenery.special_facility": {
+      "status": "convention",
+      "source": "out/map_topology",
+      "derive": "特殊设施（隧道/桥梁/收费站…）枚举",
+      "unit": "枚举",
+      "note": "与 has_toll_station 等布尔缺口同源，需设施清单字段"
+    },
+    "scenery.surface_type": {
+      "status": "covered",
+      "source": "out/env_summary",
+      "derive": "road_cond + material",
+      "unit": "枚举",
+      "note": ""
+    },
+    "vehicle.ads_status": {
+      "status": "covered",
+      "source": "out/ego_system",
+      "derive": "系统正常/降级/故障枚举",
+      "unit": "枚举",
+      "note": ""
+    },
+    "vehicle.driver_status": {
+      "status": "covered",
+      "source": "out/driver_status",
+      "derive": "接管能力/可用性评估",
+      "unit": "枚举",
+      "note": ""
+    },
+    "vehicle.motion_state": {
+      "status": "convention",
+      "source": "out/ego_kinematics",
+      "derive": "由速度/加速度序列派生：静止/行驶/变道…",
+      "unit": "派生枚举",
+      "note": "输出表无自车 motion_state 枚举（dyn_objects.motion_state 是目标的）"
+    }
+  },
+  "ignored_outputs": [
+    {"field": "out/dyn_objects", "reason": "原始列表不进 Observation；经 odd_suite dynamic_rollup 聚合为计数/布尔", "exception": "聚合结果进 dynamic.*"},
+    {"field": "out/stat_objects / out/freespace / out/occupancy", "reason": "几何/栅格张量；仅聚合计数经 dynamic/obstacles 或走规划链路"},
+    {"field": "out/heatmap / out/scene_drift / out/unknown_objects", "reason": "OOD 诊断产物，判据仅消费标量分数（见 conflicts）"},
+    {"field": "out/explanation", "reason": "解释文本属报告侧；判据自产出 reason_code/message_zh"},
+    {"field": "out/ismr_packet", "reason": "ISMR 上行是判据的下游，方向相反；其『逐元素观测+判定+时间戳』由 JudgmentReport.to_dict() 供给"},
+    {"field": "out/provenance", "reason": "Observation.timestamp/source 承接时间戳与来源；模型版本可扩展 optional 字段"}
+  ],
+  "conflicts": [
+    {
+      "id": "unknown_role_ignore",
+      "title": "未知目标类别：xlsx 要求『未决』，suite 默认忽略",
+      "detail": "xlsx：type 含『未知』兜底且未知→未决。odd_suite/mapping/tables/dynamic_roles.json 为 default_role=ignore，未知类别当前不进任何规则。",
+      "resolution": "二选一：感知侧保证类型闭集；或 unknown 角色改映射为触发 dynamic.agent_type=unknown 走缺省回退。",
+      "status": "待决策"
+    },
+    {
+      "id": "robc_failsafe",
+      "title": "ROBC 低分→fail-safe/ODD exit 在判据侧无整帧机制",
+      "detail": "xlsx 要求 ROBC<阈值→保守化/退出；suite 的 definition_mode 是 profile 静态配置，无运行时整帧降级开关。",
+      "resolution": "约定运行方式：ROBC 低分时由上游把 sensors.confidence_* 压低并切 restrictive profile；或判据侧新增整帧 missing_policy 覆盖（功能新增，需单独立项）。",
+      "status": "待决策"
+    },
+    {
+      "id": "missing_policy_proposal",
+      "title": "『低置信/地图失配→未决』落 profile missing_policy",
+      "detail": "xlsx 多处『未决』；对应判据机制为 UNDEFINED + missing_policy(by_element→by_tag→default)。byd_tjp 当前未配 missing_policy，缺失观测按 definition_mode=restrictive 判 OUTSIDE（安全优先设计）。",
+      "resolution": "提案（改判据语义，需产品确认后粘贴进 profiles/byd_tjp.json 顶层）：{\"missing_policy\": {\"by_tag\": {\"map\": \"undefined\"}, \"default\": \"mode\"}} — 仅地图来源缺失走未决，其余维持 restrictive。",
+      "status": "待决策"
+    },
+    {
+      "id": "quantized_bandwidth",
+      "title": "档位制输出限制 BOUNDARY 裕度",
+      "detail": "能见度 4 档、雨雪 0~3 档只能判 INSIDE/OUTSIDE 或按代表值粗判，无法给出真实 remaining_margin。",
+      "resolution": "修订请求 2：档位字段附『代表值+区间』；区间跨阈值时判据按区间保守处理（跨界→BOUNDARY 或未决）。",
+      "status": "已提修订"
+    },
+    {
+      "id": "timing_alignment",
+      "title": "多源频率 1~100Hz 的判决节拍与观测过期",
+      "detail": "环境 1Hz、动态 10Hz、自车 100Hz；suite 单帧/JSONL 流判决，无 max_age 规则。",
+      "resolution": "约定：判决节拍 10Hz，逐字段带 timestamp，超时(如环境 >2s)按缺失回退。",
+      "status": "待约定"
+    }
+  ]
+}
