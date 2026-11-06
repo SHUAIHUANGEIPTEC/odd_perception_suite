@@ -73,7 +73,7 @@
 
 ## 5. 对照 `profiles/byd_tjp.json` 的缺口
 
-把 17 条维度逐条对回 `byd_tjp` 的 42 条元素，最初有四个维度**没有对应元素**。其中三个已经补进扩展 profile `profiles/odc_ext_cn.json`（挂载方式 `--extends odc_ext_cn`）：
+把 17 条维度逐条对回 `byd_tjp` 的 43 条元素，最初有四个维度**没有对应元素**。其中三个已经补进扩展 profile `profiles/odc_ext_cn.json`（挂载方式 `--extends odc_ext_cn`）：
 
 | 维度 | 生产者 | 元素 | 现状 |
 |---|---|---|---|

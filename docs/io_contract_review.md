@@ -60,8 +60,8 @@
 
 | # | 冲突 | 建议决议 | 状态 |
 |---|---|---|---|
-| C1 | xlsx 要求未知类别→未决；本套件 `dynamic_roles.json` 为 `default_role=ignore`（未知被静默忽略） | 感知侧保证类型闭集，**或** unknown 映射为 `dynamic.agent_type=unknown` 走缺省回退 | 待决策 |
-| C2 | xlsx 要求 `ROBC < 阈值 → fail-safe/ODD exit`；判据无整帧运行时降级开关 | 约定：上游低分时压低 `sensors.confidence_*` 并切 restrictive profile；整帧开关为功能新增，单独立项 | 待决策 |
+| C1 | xlsx 要求未知类别→未决；本套件 `dynamic_roles.json` 为 `default_role=ignore`（未知被静默忽略） | **已落地（2026-11-06 批准）**：`dynamic_rollup.map()` 遇未映射类别（default=ignore）时整组不产出 `dynamic.*` 五键；byd_tjp `missing_policy.by_tag` 加 `"dynamic": "undefined"` 承接 → 未知存在时目标物规则 UNDEFINED、不参与聚合、不误判越界（低分未知不触发） | 已决策 |
+| C2 | xlsx 要求 `ROBC < 阈值 → fail-safe/ODD exit`；判据无整帧运行时降级开关 | **已落地（2026-11-06 批准）**：byd_tjp 新增 `ODC.7.1.5.robc` 数值元素（`sensors.robc` ← `out/robc`，`>=0.6` band `0.05` **占位待 IQSM 确认**）→ 低 ROBC 该元素 OUTSIDE → 聚合 `mrm_or_refuse`（profile 级 fail-safe）；通道未接时 `missing_policy.by_element → undefined` 保守未决。码表/计数（43 条）/odd_rules 已同步 | 已决策 |
 | C3 | 「低置信/地图失配→未决」需落 profile `missing_policy` | **已落地（2026-11-06 批准）**：`profiles/byd_tjp.json` 顶层 `"missing_policy": {"by_tag": {"road": "undefined", "scenery": "undefined"}, "default": "mode"}` — ODC.1 道路组 16 元素（真实 tag 为 `road`/`scenery`，原提案的 `map` tag 不存在）缺失时判 UNDEFINED 并记 `policy_source`；其余维持 restrictive。上游仓 ODD_Judge `4f95200`，双副本已同步 | 已决策 |
 | C4 | 多源 1~100Hz，无判决节拍与观测过期规则 | 约定：判决节拍 10Hz，逐字段带 timestamp，超时（环境 >2s 等）按缺失回退 | 待约定 |
 

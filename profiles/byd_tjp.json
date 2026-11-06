@@ -3,7 +3,8 @@
   "label_zh": "比亚迪 TJP 交通拥堵自动驾驶 ODD",
   "definition_mode": "restrictive",
   "missing_policy": {
-    "by_tag": {"road": "undefined", "scenery": "undefined"},
+    "by_element": {"ODC.7.1.5.robc": "undefined"},
+    "by_tag": {"road": "undefined", "scenery": "undefined", "dynamic": "undefined"},
     "default": "mode"
   },
   "extends": null,
@@ -507,6 +508,19 @@
       "boundary_margin": {"mode": "absolute", "value": 0.05},
       "tags": ["sensor", "perception"],
       "warning_codes": {"boundary": "PER-LIDAR-CONF-NEAR", "outside": "PER-CONF-002"}
+    },
+    {
+      "element_id": "ODC.7.1.5.robc",
+      "path": ["传感器状态", "综合运行置信度"],
+      "label_zh": "综合运行置信度(ROBC)",
+      "requirement": "allowed",
+      "rule_type": "numeric_range",
+      "observation_key": "sensors.robc",
+      "op": ">=",
+      "threshold": 0.6,
+      "boundary_margin": {"mode": "absolute", "value": 0.05},
+      "tags": ["sensor", "perception"],
+      "warning_codes": {"boundary": "PER-ROBC-NEAR", "outside": "PER-ROBC-001"}
     }
   ]
 }

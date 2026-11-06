@@ -229,6 +229,13 @@
       "unit": "0~1",
       "note": "同上"
     },
+    "sensors.robc": {
+      "status": "covered",
+      "source": "out/robc",
+      "derive": "直接标量 0~1 → 判据元素 ODC.7.1.5.robc",
+      "unit": "0~1",
+      "note": "C2 fail-safe：阈值 0.6/band 0.05（占位待 IQSM 确认），低分聚合直接 mrm_or_refuse；通道未接时 by_element → undefined"
+    },
     "vehicle.activation_speed_kmh": {
       "status": "convention",
       "source": "out/ego_kinematics + out/ego_system",
@@ -477,22 +484,22 @@
     {
       "id": "unknown_role_ignore",
       "title": "未知目标类别：xlsx 要求『未决』，suite 默认忽略",
-      "detail": "xlsx：type 含『未知』兜底且未知→未决。odd_suite/mapping/tables/dynamic_roles.json 为 default_role=ignore，未知类别当前不进任何规则。",
-      "resolution": "二选一：感知侧保证类型闭集；或 unknown 角色改映射为触发 dynamic.agent_type=unknown 走缺省回退。",
-      "status": "待决策"
+      "detail": "xlsx：type 含『未知』兜底且未知→未决。原 dynamic_roles default_role=ignore 把未知类别静默丢弃，presence 键照常输出 false。",
+      "resolution": "已实施（2026-11-06 批准）：dynamic_rollup.map() 检测到未映射类别（default_role=ignore）时整组不产出 dynamic.* 五键（含 surrounding_vehicles，避免计数低估）；byd_tjp missing_policy.by_tag 加 \"dynamic\": \"undefined\" 承接 → 未知存在时目标物规则 UNDEFINED 不参与聚合，不误判越界。低分（<阈值）未知不触发。",
+      "status": "已决策"
     },
     {
       "id": "robc_failsafe",
       "title": "ROBC 低分→fail-safe/ODD exit 在判据侧无整帧机制",
       "detail": "xlsx 要求 ROBC<阈值→保守化/退出；suite 的 definition_mode 是 profile 静态配置，无运行时整帧降级开关。",
-      "resolution": "约定运行方式：ROBC 低分时由上游把 sensors.confidence_* 压低并切 restrictive profile；或判据侧新增整帧 missing_policy 覆盖（功能新增，需单独立项）。",
-      "status": "待决策"
+      "resolution": "已实施（2026-11-06 批准）：byd_tjp 新增数值元素 ODC.7.1.5.robc（sensors.robc ← out/robc，>=0.6 band 0.05 占位待 IQSM）——低 ROBC 该元素 OUTSIDE，聚合 OUTSIDE 优先级最高 → mrm_or_refuse，即 profile 级整帧 fail-safe；观测缺失（通道未接）经 missing_policy.by_element → undefined 保守未决。",
+      "status": "已决策"
     },
     {
       "id": "missing_policy_proposal",
       "title": "『低置信/地图失配→未决』落 profile missing_policy",
       "detail": "xlsx 多处『未决』；对应判据机制为 UNDEFINED + missing_policy(by_element→by_tag→default)。已落地：byd_tjp 顶层 missing_policy 按真实 tag road/scenery 命中 ODC.1 道路组 16 元素。",
-      "resolution": "已实施（2026-11-06 批准）：profiles/byd_tjp.json → {\"missing_policy\": {\"by_tag\": {\"road\": \"undefined\", \"scenery\": \"undefined\"}, \"default\": \"mode\"}} — 道路/地图来源缺失判 UNDEFINED 记 policy_source，其余维持 restrictive；上游 ODD_Judge 4f95200，双副本同步。",
+      "resolution": "已实施（2026-11-06 批准）：profiles/byd_tjp.json → {\"by_element\": {\"ODC.7.1.5.robc\": \"undefined\"}, \"by_tag\": {\"road\": \"undefined\", \"scenery\": \"undefined\", \"dynamic\": \"undefined\"}, \"default\": \"mode\"} — 道路/目标物/ROBC 缺失判 UNDEFINED 记 policy_source，其余维持 restrictive；上游 ODD_Judge 0822b87，双副本同步。",
       "status": "已决策"
     },
     {

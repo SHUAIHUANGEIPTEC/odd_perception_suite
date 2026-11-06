@@ -18,7 +18,7 @@
   侧车 JSON（地图/CAN）─►│ Observation 组装（mapping/builder + sidecar）   │
                          └───────────────────┬──────────────────────────┘
                          ┌───────────────────▼──────────────────────────┐
-                         │ ODD 判别：odd_judge 规则引擎（42 条 ODC 规则） │──► INSIDE /
+                         │ ODD 判别：odd_judge 规则引擎（43 条 ODC 规则） │──► INSIDE /
                          │ profiles/byd_tjp.json（ISO 34503 语义）        │    BOUNDARY /
                          └──────────────────────────────────────────────┘    OUTSIDE
 ```

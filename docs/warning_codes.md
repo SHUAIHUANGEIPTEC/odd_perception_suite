@@ -114,6 +114,8 @@
 | `PER-CAM-CONF-NEAR` | BOUNDARY（边界带） | `ODC.7.1.3.camera_confidence` | 摄像头置信度 | >= 0.6，边界带 ±0.05 | — |
 | `PER-CONF-002` | OUTSIDE（域外） | `ODC.7.1.4.lidar_confidence` | 激光雷达置信度 | >= 0.6，边界带 ±0.05 | — |
 | `PER-LIDAR-CONF-NEAR` | BOUNDARY（边界带） | `ODC.7.1.4.lidar_confidence` | 激光雷达置信度 | >= 0.6，边界带 ±0.05 | — |
+| `PER-ROBC-001` | OUTSIDE（域外） | `ODC.7.1.5.robc` | 综合运行置信度(ROBC) | >= 0.6，边界带 ±0.05 | — |
+| `PER-ROBC-NEAR` | BOUNDARY（边界带） | `ODC.7.1.5.robc` | 综合运行置信度(ROBC) | >= 0.6，边界带 ±0.05 | — |
 
 ### `profiles/odc_ext_cn.json` — profile_id: odc_ext_cn
 

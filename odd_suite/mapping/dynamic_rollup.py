@@ -21,6 +21,13 @@ class DynamicRollup:
     Role assignment comes from the ``dynamic_roles`` table. The default table
     keeps ordinary vehicle traffic out of ``obstacles_over_0_3m`` (BYD TJP is a
     traffic-jam pilot: surrounding vehicles are expected, not obstacles).
+
+    When a detection's class is not in the roles table and the table's
+    ``default_role`` is ``ignore`` (unknown class), ``map()`` returns **no
+    fields at all**: absence of an object class must not be asserted when the
+    classifier cannot account for every box. The missing ``dynamic.*`` keys
+    then fall through the judge's ``missing_policy`` (byd_tjp: by_tag
+    ``dynamic`` → undefined) instead of silently counting unknowns as zero.
     """
 
     def __init__(self, tables: MappingTables | None = None, score_threshold: float = 0.0):
@@ -31,7 +38,20 @@ class DynamicRollup:
         roles = self.tables.dynamic_roles.get("roles", {})
         return roles.get(name, self.tables.dynamic_roles.get("default_role", "ignore"))
 
+    def _unmapped(self, detections: list[Detection3D]) -> list[str]:
+        """Classes above threshold that are absent from the roles table."""
+        roles = self.tables.dynamic_roles.get("roles", {})
+        names: set[str] = set()
+        for det in detections:
+            if det.score >= self.score_threshold and det.name not in roles:
+                names.add(det.name)
+        return sorted(names)
+
     def map(self, detections: list[Detection3D]) -> dict[str, Any]:
+        # Unknown class + ignore fallback → omit the whole group (see docstring).
+        default_role = self.tables.dynamic_roles.get("default_role", "ignore")
+        if default_role == "ignore" and self._unmapped(detections):
+            return {}
         counts = self.role_counts(detections)
         return {
             "pedestrians_present": counts.get("vru", 0) > 0,
@@ -62,4 +82,5 @@ class DynamicRollup:
             "per_class_counts": by_name,
             "role_counts": self.role_counts(detections),
             "score_threshold": self.score_threshold,
+            "unmapped_classes": self._unmapped(detections),
         }

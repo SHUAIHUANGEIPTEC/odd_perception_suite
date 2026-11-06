@@ -49,9 +49,21 @@ def test_surrounding_vehicles_counts_traffic_role(rollup):
     assert fields["obstacles_over_0_3m"] == 0
 
 
-def test_unknown_class_ignored_by_default(rollup):
-    fields = rollup.map([make_det("spaceship")])
-    assert fields["obstacles_over_0_3m"] == 0
+def test_unknown_class_omits_dynamic_group(rollup):
+    # Unknown class (not in roles table, default_role=ignore): no field may
+    # assert absence — the whole group stays absent so the judge's
+    # missing_policy (by_tag dynamic -> undefined) applies.
+    assert rollup.map([make_det("spaceship")]) == {}
+
+
+def test_unknown_class_among_knowns_still_omits(rollup):
+    dets = [make_det("car"), make_det("spaceship")]
+    assert rollup.map(dets) == {}
+
+
+def test_low_score_unknown_does_not_trigger_omission(rollup):
+    fields = rollup.map([make_det("car"), make_det("spaceship", score=0.1)])
+    assert fields["surrounding_vehicles"] == 1  # filtered by score, not unknown
 
 
 def test_sensors_from_detection_mean(sensors):
