@@ -14,6 +14,7 @@ _TABLE_FILES = {
     "weather": "weather_env.json",
     "visibility": "visibility_env.json",
     "lighting": "lighting_env.json",
+    "friction": "friction_env.json",
 }
 
 
@@ -24,6 +25,7 @@ class MappingTables:
     lighting: dict[str, Any]
     dynamic_roles: dict[str, Any]
     sensor_policies: dict[str, Any]
+    friction: dict[str, Any]
 
     @classmethod
     def load(cls, directory: Path | None = None) -> "MappingTables":
@@ -40,6 +42,7 @@ class MappingTables:
             lighting=read(_TABLE_FILES["lighting"]),
             dynamic_roles=read("dynamic_roles.json"),
             sensor_policies=read("sensor_policies.json"),
+            friction=read(_TABLE_FILES["friction"]),
         )
 
 
@@ -82,7 +85,25 @@ class EnvMapper:
         if illumination is not None:
             env["illumination_lux"] = float(illumination)
 
+        friction = self._friction_mu(attr)
+        if friction is not None:
+            env["friction_mu"] = friction
+
         return env
+
+    def _friction_mu(self, attr: AttrResult) -> float | None:
+        """Adhesion proxy from the road_condition / road_material heads.
+
+        The classifier only names a surface class, so this is a table lookup, not
+        a measurement. Unknown classes stay missing on purpose: the judge then
+        reports the element as undefined instead of inventing a friction value.
+        """
+        tables = self.tables.friction
+        mu = tables.get("condition_mu", {}).get(attr.road_condition)
+        if mu is None:
+            return None
+        cap = tables.get("material_cap", {}).get(attr.road_material)
+        return min(float(mu), float(cap)) if cap is not None else float(mu)
 
     def debug(self, attr: AttrResult) -> dict[str, Any]:
         """Non-judged extras (road_condition / road_material) for PipelineResult.debug."""

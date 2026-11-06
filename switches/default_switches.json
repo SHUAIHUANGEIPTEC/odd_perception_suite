@@ -22,9 +22,10 @@
     "odc": true,
     "system": true,
     "sensor": true,
-    "perception": true
+    "perception": true,
+    "surface": true,
+    "traffic": true,
+    "extension": true
   },
-  "boundary_warnings_enabled": true,
-  "boundary_severity": "warning",
-  "on_switch_mismatch": "skip"
+  "boundary_warnings_enabled": true
 }

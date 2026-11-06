@@ -42,6 +42,14 @@
 | **restrictive** | 视为 OUTSIDE（`UNDEFINED-STRICT`） | **BYD TJP 默认**，安全优先 |
 | **default** | UNDEFINED，不入聚合 | ODC 骨架探索 |
 
+以上是最后一级回退。更细的覆盖层（高 → 低）：元素 `requirement=undefined` →
+元素级 `undefined_as` → profile 顶层 `missing_policy.by_element` → `by_tag` →
+`default` → 本节的 `definition_mode`。`missing_policy` 取值
+`allowed | not_allowed | undefined | mode`，命中来源记入
+`RuleResult.policy_source` 与 `report.undefined_handled[].policy`。
+完整优先级表、写法与「缺信息时哪些判据生效」的说明见
+[`architecture_contract.md`](architecture_contract.md) 第 4 节。
+
 ## 4. 定量边界（BoundaryMargin）
 
 ```

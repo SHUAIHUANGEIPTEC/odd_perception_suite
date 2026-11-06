@@ -1,0 +1,52 @@
+{
+  "profile_id": "odc_ext_cn",
+  "label_zh": "中国量产 ODC 扩展基线（路面附着 / 交通流密度代理 / 限速合规）",
+  "definition_mode": "restrictive",
+  "extends": null,
+  "_notes": "Companion of byd_tjp: fills the three ODD dimensions the TJP profile has no element for. Mount with --extends odc_ext_cn. Thresholds are placeholders declared as oem_declared; override per project in profiles/overrides/.",
+  "elements": [
+    {
+      "element_id": "ODC.1.5.1.road_friction",
+      "path": ["道路特征", "道路表面", "路面附着"],
+      "label_zh": "路面附着",
+      "requirement": "allowed",
+      "rule_type": "numeric_range",
+      "observation_key": "environment.friction_mu",
+      "op": ">=",
+      "threshold": 0.4,
+      "boundary_margin": {"mode": "absolute", "value": 0.1},
+      "tags": ["road", "surface", "extension"],
+      "warning_codes": {"boundary": "EXT-FRI-NEAR", "outside": "EXT-FRI-001"},
+      "note_zh": "附着 μ 是分类标签的查表代理（friction_env.json），不是量测：干 0.85 / 湿 0.6 / 积雪 0.3，石板路再乘材料上限。μ<0.4 视为域外，对应禁用结冰积雪路面的行业惯例。"
+    },
+    {
+      "element_id": "ODC.4.2.1.traffic_density",
+      "path": ["交通参与者", "交通流", "交通流密度"],
+      "label_zh": "交通流目标数(密度代理)",
+      "requirement": "allowed",
+      "rule_type": "numeric_range",
+      "observation_key": "dynamic.surrounding_vehicles",
+      "op": "<=",
+      "threshold": 15.0,
+      "boundary_margin": {"mode": "absolute", "value": 3.0},
+      "tags": ["dynamic", "traffic", "extension"],
+      "warning_codes": {"boundary": "EXT-DEN-NEAR", "outside": "EXT-DEN-001"},
+      "note_zh": "nuScenes 检测框 translation 是全局坐标，没有自车位姿就做不了「50m 半径内计数」，所以这里只统计画面内 traffic 角色目标数作为密度代理。阈值是占位默认值，按场景覆写。"
+    },
+    {
+      "element_id": "ODC.2.1.5.speed_limit",
+      "path": ["车辆运动状态", "速度", "限速合规"],
+      "label_zh": "限速合规(超速量)",
+      "requirement": "allowed",
+      "rule_type": "numeric_range",
+      "observation_key": "vehicle.overspeed_kmh",
+      "op": "<=",
+      "threshold": 5.0,
+      "boundary_margin": {"mode": "absolute", "value": 2.0},
+      "undefined_as": "allowed",
+      "tags": ["vehicle", "motion", "extension"],
+      "warning_codes": {"boundary": "EXT-SPD-NEAR", "outside": "EXT-SPD-001"},
+      "note_zh": "超速量 = speed_kmh - speed_limit_kmh，由 ObservationBuilder 派生；限速本身只能来自地图侧车（无地图适配器）。缺侧车时按 undefined_as=allowed 跳过，否则 restrictive 会把每一帧都判成域外。"
+    }
+  ]
+}

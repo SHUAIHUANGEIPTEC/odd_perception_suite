@@ -1,0 +1,46 @@
+{
+  "profile_id": "city_noa_cn",
+  "label_zh": "城市 NOA 覆盖（路口放开 + 信号灯合规 + 路口类型标注）",
+  "definition_mode": "restrictive",
+  "extends": null,
+  "_notes": "Override profile for byd_tjp: mount with --override city_noa_cn. The TJP profile forbids plane intersections outright, which makes any traffic-light rule unreachable; here the intersection ban is lifted and the constraint moves to two elements: the light state must be known and complied with, and the intersection type must always be annotated.",
+  "elements": [
+    {
+      "element_id": "ODC.1.4.1.intersection",
+      "path": ["道路特征", "道路交叉", "平面交叉路口"],
+      "label_zh": "平面交叉路口",
+      "requirement": "undefined",
+      "rule_type": "qualitative_bool",
+      "observation_key": "scenery.has_intersection",
+      "tags": ["road", "junction", "city"],
+      "note_zh": "城市 profile 不再把路口本身判为域外：约束下移到信号灯状态与路口类型标注两条元素。"
+    },
+    {
+      "element_id": "ODC.1.5.1.traffic_light_state",
+      "path": ["道路设施", "交通信号灯", "信号灯状态"],
+      "label_zh": "信号灯状态合规",
+      "requirement": "allowed",
+      "rule_type": "qualitative_enum",
+      "observation_key": "scenery.traffic_light_state",
+      "allowed_values": ["green"],
+      "boundary_values": ["yellow"],
+      "forbidden_values": ["red"],
+      "applies_when": {"key": "scenery.traffic_light_applicable", "op": "==", "value": true},
+      "tags": ["road", "signal", "city"],
+      "warning_codes": {"boundary": "CITY-TL-NEAR", "outside": "CITY-TL-001"},
+      "note_zh": "只在「该灯作用于本车道」时评估（traffic_light_applicable=true），否则跳过而不是判域外。未知状态按 allowed 语义判域外，保守化。"
+    },
+    {
+      "element_id": "ODC.1.5.2.intersection_annotation",
+      "path": ["道路交叉", "路口类型标注"],
+      "label_zh": "路口类型须标注",
+      "requirement": "allowed",
+      "rule_type": "qualitative_enum",
+      "observation_key": "scenery.intersection_type",
+      "allowed_values": ["signalized", "unsignalized", "none"],
+      "tags": ["road", "junction", "city"],
+      "warning_codes": {"outside": "CITY-JCT-001"},
+      "note_zh": "把「无信号路口须标注」落成可判条件：观测缺失在 restrictive 模式下即域外，等价于要求必填。"
+    }
+  ]
+}

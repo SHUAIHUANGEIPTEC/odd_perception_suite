@@ -36,12 +36,16 @@ class CanMapAdapter(ObservationAdapter):
         return Observation(fields={
             "vehicle": {
                 "speed_kmh": self.can.speed_kmh,
+                "speed_limit_kmh": self.map.speed_limit_ahead(),  # odc_ext_cn 限速合规
                 "seatbelt_on": self.can.seatbelt_on,
                 "driver_in_sight": ...,
             },
             "scenery": {
                 "road_type": self.map.current_road_type(),
                 "curve_radius_m": self.map.curve_radius_ahead(),
+                "intersection_type": self.map.intersection_type(),      # city_noa_cn 必填
+                "traffic_light_state": self.spat.state(),               # green/yellow/red/unknown
+                "traffic_light_applicable": self.map.light_is_ours(),   # 车道关联结果
                 ...
             },
         }, source="can_map")
@@ -74,3 +78,8 @@ class Detector3D(Protocol):
 
 规则引擎部分（ODC 元素、规则类型）见 `odd_judge/config/registry.py`
 与 `odd_judge/cli.py validate`；profile 增加元素后无需改本套件代码。
+
+现成的扩展例子是 `profiles/odc_ext_cn.json`（路面附着 / 交通流密度代理 / 限速合规），
+用 `--extends odc_ext_cn` 挂到任意 base profile 上。新增维度时按同样的三步走：
+映射层产出 `observation_key` → 元素写进扩展 profile → 给元素配唯一 `warning_codes`
+（`scripts/gen_warning_codes_doc.py` 会自动收录进告警码文档）。

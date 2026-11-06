@@ -1,0 +1,16 @@
+{
+  "condition_mu": {
+    "Dry": 0.85,
+    "Wet": 0.6,
+    "Snow-covered": 0.3
+  },
+  "material_cap": {
+    "Asphalt": 1.0,
+    "Concrete": 0.8,
+    "Cobblestone": 0.55
+  },
+  "_notes": {
+    "condition_mu": "Representative adhesion coefficient per classifier road_condition class. This is a proxy from a classification label, not a measurement. 'Other' is deliberately absent so friction_mu stays missing and the rule is judged undefined.",
+    "material_cap": "Upper bound applied on top of the condition value: cobblestone stays slippery even when dry. 'Other' is absent, meaning no cap is applied."
+  }
+}

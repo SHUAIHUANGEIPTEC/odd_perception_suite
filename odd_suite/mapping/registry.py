@@ -46,6 +46,7 @@ class MapperRegistry:
             lighting=tables.lighting,
             dynamic_roles=dynamic,
             sensor_policies=tables.sensor_policies,
+            friction=tables.friction,
         )
 
     @classmethod

@@ -113,6 +113,48 @@ def _handle_missing(rule: Rule, ctx: EvalContext) -> RuleResult:
                 reason_code="UNDEFINED-AS-NOT-ALLOWED",
             )
 
+    if ctx.missing_policy is not None:
+        value, source = ctx.missing_policy.resolve(rule)
+        if value == "allowed":
+            return RuleResult(
+                element_id=rule.element_id,
+                state=ScenarioState.INSIDE,
+                observed=None,
+                message_zh=f"{rule.label_zh or rule.element_id}: 观测缺失(missing_policy {source}→域内)",
+                label_zh=rule.label_zh,
+                requirement=rule.requirement.value,
+                rule_type=rule.rule_type,
+                tags=rule.tags,
+                reason_code="MISSING-POLICY-ALLOWED",
+                policy_source=source,
+            )
+        if value == "not_allowed":
+            return RuleResult(
+                element_id=rule.element_id,
+                state=ScenarioState.OUTSIDE,
+                observed=None,
+                message_zh=f"{rule.label_zh or rule.element_id}: 观测缺失(missing_policy {source}→域外)",
+                label_zh=rule.label_zh,
+                requirement=rule.requirement.value,
+                rule_type=rule.rule_type,
+                tags=rule.tags,
+                reason_code="MISSING-POLICY-NOT-ALLOWED",
+                policy_source=source,
+            )
+        if value == "undefined":
+            return RuleResult(
+                element_id=rule.element_id,
+                state=ScenarioState.UNDEFINED,
+                observed=None,
+                message_zh=f"{rule.label_zh or rule.element_id}: 观测缺失(missing_policy {source}→不定义)",
+                label_zh=rule.label_zh,
+                requirement=rule.requirement.value,
+                rule_type=rule.rule_type,
+                tags=rule.tags,
+                reason_code="MISSING-POLICY-UNDEFINED",
+                policy_source=source,
+            )
+
     if mode == DefinitionMode.PERMISSIVE:
         return RuleResult(
             element_id=rule.element_id,

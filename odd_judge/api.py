@@ -7,9 +7,9 @@ from typing import Any
 
 from .config.loader import (
     load_observation,
-    load_profile_with_extends,
+    load_profile_bundle,
     load_switches,
-    parse_profile,
+    parse_profile_bundle,
 )
 from .core.aggregate import aggregate
 from .core.evaluate import evaluate_rule
@@ -17,6 +17,7 @@ from .core.types import (
     DefinitionMode,
     EvalContext,
     JudgmentReport,
+    MissingPolicy,
     Observation,
     Rule,
     RuleResult,
@@ -58,12 +59,14 @@ class OddJudge:
         definition_mode: DefinitionMode,
         rules: list[Rule],
         switches: dict[str, Any] | None = None,
+        missing_policy: MissingPolicy | None = None,
     ):
         self.profile_id = profile_id
         self.definition_mode = definition_mode
         self.rules = rules
         self.switch_policy = SwitchPolicy(switches)
         self.switches_config = switches or {}
+        self.missing_policy = missing_policy
 
     @classmethod
     def from_files(
@@ -73,11 +76,17 @@ class OddJudge:
         extends_paths: list[str | Path] | None = None,
         override_paths: list[str | Path] | None = None,
     ) -> "OddJudge":
-        pid, mode, rules = load_profile_with_extends(
+        bundle = load_profile_bundle(
             profile_path, extends_paths=extends_paths, override_paths=override_paths
         )
         switches = load_switches(switches_path)
-        return cls(pid, mode, rules, switches)
+        return cls(
+            bundle.profile_id,
+            bundle.definition_mode,
+            bundle.rules,
+            switches,
+            bundle.missing_policy,
+        )
 
     @classmethod
     def from_dicts(
@@ -85,14 +94,20 @@ class OddJudge:
         profile_data: dict[str, Any],
         switches: dict[str, Any] | None = None,
     ) -> "OddJudge":
-        pid, mode, rules = parse_profile(profile_data)
-        return cls(pid, mode, rules, switches)
+        bundle = parse_profile_bundle(profile_data)
+        return cls(
+            bundle.profile_id,
+            bundle.definition_mode,
+            bundle.rules,
+            switches,
+            bundle.missing_policy,
+        )
 
     def evaluate(self, obs: Observation | dict[str, Any]) -> JudgmentReport:
         if isinstance(obs, dict):
             obs = Observation.from_dict(obs)
 
-        ctx = EvalContext(definition_mode=self.definition_mode)
+        ctx = EvalContext(definition_mode=self.definition_mode, missing_policy=self.missing_policy)
         results: list[RuleResult] = []
         skipped: list[dict[str, Any]] = []
         undefined_handled: list[dict[str, Any]] = []
@@ -107,13 +122,14 @@ class OddJudge:
             results.append(result)
 
             if result.state == ScenarioState.UNDEFINED:
-                undefined_handled.append(
-                    {
-                        "element_id": rule.element_id,
-                        "fallback": result.reason_code or "undefined",
-                        "mode": self.definition_mode.value,
-                    }
-                )
+                entry = {
+                    "element_id": rule.element_id,
+                    "fallback": result.reason_code or "undefined",
+                    "mode": self.definition_mode.value,
+                }
+                if result.policy_source:
+                    entry["policy"] = result.policy_source
+                undefined_handled.append(entry)
 
         return aggregate(
             profile_id=self.profile_id,

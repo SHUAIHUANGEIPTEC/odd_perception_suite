@@ -36,6 +36,17 @@ def resolve_profile(value: str | Path | None) -> Path:
     raise ConfigError(f"Profile not found: {value}")
 
 
+def resolve_override(value: str | Path) -> Path:
+    """Accept an override path or a name under ``profiles/overrides/``."""
+    candidate = Path(value)
+    if candidate.exists():
+        return candidate
+    named = profiles_dir() / "overrides" / f"{candidate.stem}.json"
+    if named.exists():
+        return named
+    raise ConfigError(f"Override profile not found: {value}")
+
+
 def resolve_switches(value: str | Path | None) -> Path | None:
     if value is None:
         default = switches_dir() / "default_switches.json"
@@ -60,6 +71,8 @@ def build_config(
     score_threshold: float | None = None,
     sidecar: str | Path | None = None,
     mapping_dir: str | Path | None = None,
+    extends: list[str | Path] | None = None,
+    overrides: list[str | Path] | None = None,
     enable_attr: bool | None = None,
     enable_detect: bool | None = None,
     defaults_path: Path | None = None,
@@ -89,6 +102,8 @@ def build_config(
         weather_threshold=float(pick(weather_threshold, "weather_threshold", 0.5)),
         score_threshold=float(pick(score_threshold, "score_threshold", 0.0)),
         mapping_dir=Path(mapping) if mapping else None,
+        extends=tuple(resolve_profile(p) for p in (extends or [])),
+        overrides=tuple(resolve_override(p) for p in (overrides or [])),
         enable_attr=bool(pick(enable_attr, "enable_attr", True)),
         enable_detect=bool(pick(enable_detect, "enable_detect", False)),
         sidecar=Path(sidecar_value) if sidecar_value else None,

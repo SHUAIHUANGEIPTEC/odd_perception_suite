@@ -38,7 +38,15 @@ def test_empty_detections(rollup):
         "two_wheelers_present": False,
         "obstacles_over_0_3m": 0,
         "animals_over_0_3m": 0,
+        "surrounding_vehicles": 0,
     }
+
+
+def test_surrounding_vehicles_counts_traffic_role(rollup):
+    dets = [make_det("car"), make_det("truck"), make_det("pedestrian")]
+    fields = rollup.map(dets)
+    assert fields["surrounding_vehicles"] == 2
+    assert fields["obstacles_over_0_3m"] == 0
 
 
 def test_unknown_class_ignored_by_default(rollup):

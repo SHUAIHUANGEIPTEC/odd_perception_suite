@@ -12,6 +12,7 @@ VALID_RULE_TYPES = {"numeric_range", "qualitative_enum", "qualitative_bool"}
 VALID_OPS = {">=", "<=", ">", "<", "between", "in", "not_in", "==", "!=", "bool"}
 VALID_MARGIN_MODES = {"absolute", "relative"}
 VALID_DEFINITION_MODES = {"permissive", "restrictive", "default"}
+VALID_MISSING_POLICY_VALUES = {"allowed", "not_allowed", "undefined", "mode"}
 VALID_WARNING_CODE_KEYS = {"outside", "boundary"}
 WARNING_CODE_RE = re.compile(r"^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$")
 
@@ -31,6 +32,8 @@ def validate_profile_dict(data: dict[str, Any]) -> list[str]:
     mode = data.get("definition_mode", "default")
     if mode not in VALID_DEFINITION_MODES:
         errors.append(f"invalid definition_mode: {mode!r}")
+
+    errors.extend(_check_missing_policy(data.get("missing_policy")))
 
     elements = data["elements"]
     if not isinstance(elements, list):
@@ -100,6 +103,38 @@ def validate_profile_dict(data: dict[str, Any]) -> list[str]:
                         errors.append(f"{prefix} ({eid}): invalid warning code format: {val!r}")
 
     errors.extend(check_warning_code_duplicates(elements))
+    return errors
+
+
+def _check_missing_policy(mp: object) -> list[str]:
+    """Validate the optional top-level ``missing_policy`` block."""
+    if mp is None:
+        return []
+    if not isinstance(mp, dict):
+        return ["missing_policy must be an object"]
+    errors: list[str] = []
+    for key in mp:
+        if key not in ("by_element", "by_tag", "default"):
+            errors.append(f"missing_policy: unknown key {key!r}")
+    for group in ("by_element", "by_tag"):
+        sub = mp.get(group)
+        if sub is None:
+            continue
+        if not isinstance(sub, dict):
+            errors.append(f"missing_policy.{group} must be an object")
+            continue
+        for name, value in sub.items():
+            if value not in VALID_MISSING_POLICY_VALUES:
+                errors.append(
+                    f"missing_policy.{group}[{name}]: invalid value {value!r} "
+                    f"(allowed: {sorted(VALID_MISSING_POLICY_VALUES)})"
+                )
+    default = mp.get("default")
+    if default is not None and default not in VALID_MISSING_POLICY_VALUES:
+        errors.append(
+            f"missing_policy.default: invalid value {default!r} "
+            f"(allowed: {sorted(VALID_MISSING_POLICY_VALUES)})"
+        )
     return errors
 
 

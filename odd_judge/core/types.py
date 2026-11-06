@@ -125,6 +125,7 @@ class RuleResult:
     remaining_margin: Optional[float] = None
     margin_band: Optional[float] = None
     reason_code: Optional[str] = None
+    policy_source: Optional[str] = None
     confidence: float = 1.0
     message_zh: str = ""
     label_zh: str = ""
@@ -140,6 +141,7 @@ class RuleResult:
             "remaining_margin": self.remaining_margin,
             "margin_band": self.margin_band,
             "reason_code": self.reason_code,
+            "policy_source": self.policy_source,
             "confidence": self.confidence,
             "message_zh": self.message_zh,
             "label_zh": self.label_zh,
@@ -215,10 +217,42 @@ class JudgmentReport:
         return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
 
 
+@dataclass(frozen=True)
+class MissingPolicy:
+    """Fallback for missing observations, resolved per element / tag / default.
+
+    Value ``"mode"`` means: fall through to the profile ``definition_mode``.
+    Resolution order (highest first): ``by_element`` -> first matching entry in
+    ``by_tag`` over ``rule.tags`` -> ``default``. Element-level ``undefined_as``
+    and ``requirement == undefined`` are checked by the caller before this.
+    """
+
+    by_element: dict[str, str] = field(default_factory=dict)
+    by_tag: dict[str, str] = field(default_factory=dict)
+    default: str = "mode"
+
+    def resolve(self, rule: "Rule") -> tuple[Optional[str], Optional[str]]:
+        """Return ``(value, source)`` for ``rule``; ``value=None`` when nothing matches.
+
+        ``source`` names the matched entry (``by_element[id]`` / ``by_tag[tag]`` /
+        ``default``) so reports can say which policy fired.
+        """
+        value = self.by_element.get(rule.element_id)
+        if value is not None:
+            return value, f"by_element[{rule.element_id}]"
+        for tag in rule.tags:
+            if tag in self.by_tag:
+                return self.by_tag[tag], f"by_tag[{tag}]"
+        if self.default and self.default != "mode":
+            return self.default, "default"
+        return None, None
+
+
 @dataclass
 class EvalContext:
     definition_mode: DefinitionMode = DefinitionMode.DEFAULT
     strict_undefined: bool = False
+    missing_policy: Optional[MissingPolicy] = None
 
 
 class RuleEvaluator(Protocol):

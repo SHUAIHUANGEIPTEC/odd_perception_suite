@@ -20,6 +20,30 @@ def _deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]
     return merged
 
 
+def _with_derived(fields: dict[str, Any]) -> dict[str, Any]:
+    """Add cross-signal fields the judge cannot compute from a single observation.
+
+    ``overspeed_kmh = speed_kmh - speed_limit_kmh``: the judge compares one field
+    against a threshold, so the speed-limit rule is expressed on the difference.
+    Missing either input leaves the field absent, which the rule may declare as
+    ``undefined_as``.
+    """
+    vehicle = fields.get("vehicle")
+    if not isinstance(vehicle, dict):
+        return fields
+    speed = vehicle.get("speed_kmh")
+    limit = vehicle.get("speed_limit_kmh")
+    if speed is None or limit is None:
+        return fields
+    try:
+        overspeed = float(speed) - float(limit)
+    except (TypeError, ValueError):
+        return fields
+    derived = dict(fields)
+    derived["vehicle"] = {**vehicle, "overspeed_kmh": overspeed}
+    return derived
+
+
 class ObservationBuilder:
     def __init__(self) -> None:
         self._groups: dict[str, dict[str, Any]] = {}
@@ -41,4 +65,4 @@ class ObservationBuilder:
     def build(self, *, timestamp: str = "", source: str = "") -> Observation:
         fields = dict(self._groups)
         fields = _deep_merge(fields, self._sidecar)
-        return Observation(fields=fields, timestamp=timestamp, source=source)
+        return Observation(fields=_with_derived(fields), timestamp=timestamp, source=source)

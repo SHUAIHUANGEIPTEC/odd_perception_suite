@@ -45,6 +45,13 @@ odd-suite run --no-attr \
 # 4) 配置校验 / 权重校验
 odd-suite validate --profile byd_tjp
 odd-suite weights-check
+
+# 5) 挂载扩展维度（路面附着 / 交通流密度代理 / 限速合规）
+odd-suite run --no-attr --extends odc_ext_cn \
+  --sidecar examples/sidecar_highway.json
+
+# 6) 城市场景：放开路口禁令 + 信号灯合规 + 路口类型必标注
+odd-suite run --no-attr --override city_noa_cn --sidecar <侧车JSON>
 ```
 
 ## 可选：真实模型推理
@@ -88,7 +95,7 @@ pytest -q tests/
 | `odd_suite/` | 第一方胶水：CLI、schema、映射层、适配器、流水线、报告；`vendor/attr/` 为属性分类器模型代码与 checkpoint 契约 |
 | `odd_judge/` | ODD 判别规则引擎（原 ODD_Judge 包原样迁入，零依赖，API 不变） |
 | `vendor/sparse4d/` | Sparse4D 检测运行时（原交付包，内部导入不变；见 `VENDOR.md`） |
-| `configs/ profiles/ switches/` | 流水线默认配置、ODD 规则 profile（BYD TJP / GB-T 骨架）、开关策略 |
+| `configs/ profiles/ switches/` | 流水线默认配置、ODD 规则 profile（BYD TJP / GB-T 骨架 / `odc_ext_cn` 扩展）、开关策略 |
 | `weights/` | 最优权重各一份：`attr_best.pth`（拷贝）+ `sparse4d_last.ckpt`（软链）；`MANIFEST.json` 记录来源/哈希/指标 |
 | `examples/` | 三态样例观测、侧车 JSON、检测样例、演示图 |
 | `tests/` | 映射/组装/端到端/CLI 测试（核心用例无需 torch） |
@@ -112,12 +119,14 @@ pytest -q tests/
 
 ## 文档
 
+- `docs/architecture_contract.md` — 架构契约：感知→判决数据通路、有无协议通信、扩展点、缺信息时的判据行为
 - `docs/architecture.md` — 分层与数据流
 - `docs/mapping.md` — 完整字段映射表与优先级、扩展方式
 - `docs/adapters.md` — 编写新适配器（CAN/地图/其他检测器）
 - `docs/env_setup.md` — 三套环境配方（core / attr / detect）
 - `docs/semantics.md` — ODD 判决语义（ISO 34503）
 - `docs/warning_codes.md` — 告警码参考（命名规范、自动码表、引擎码）
+- `docs/oem_practice.md` — ODD 维度 × 主机厂覆盖度分层（行业实践口径，不产生判决规则）
 - `docs/training/README.md` — 训练代码出处（不在本仓）
 - `vendor/sparse4d/VENDOR.md` — 检测运行时来源与运行要求
 

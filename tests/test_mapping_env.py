@@ -59,3 +59,22 @@ def test_multi_label_weather_triggers_independently(env_mapper):
 def test_debug_exposes_road_tasks(env_mapper):
     dbg = env_mapper.debug(make_attr(road_condition="Wet", road_material="Concrete"))
     assert dbg == {"road_condition": "Wet", "road_material": "Concrete"}
+
+
+def test_friction_proxy_from_condition(env_mapper):
+    expected = {"Dry": 0.85, "Wet": 0.6, "Snow-covered": 0.3}
+    for condition, mu in expected.items():
+        env = env_mapper.map(make_attr(road_condition=condition))
+        assert env["friction_mu"] == mu
+
+
+def test_friction_capped_by_material(env_mapper):
+    env = env_mapper.map(make_attr(road_condition="Dry", road_material="Cobblestone"))
+    assert env["friction_mu"] == 0.55
+    env = env_mapper.map(make_attr(road_condition="Wet", road_material="Asphalt"))
+    assert env["friction_mu"] == 0.6
+
+
+def test_friction_missing_for_unknown_condition(env_mapper):
+    env = env_mapper.map(make_attr(road_condition="Other"))
+    assert "friction_mu" not in env  # unknown surface stays undefined, never guessed

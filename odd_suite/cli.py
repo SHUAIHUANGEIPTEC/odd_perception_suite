@@ -44,11 +44,13 @@ def _resolve_extra(paths: list[str] | None, subdir: str | None = None) -> list[P
         if candidate.exists():
             resolved.append(candidate)
             continue
-        named = profiles_dir() / subdir / raw if subdir else profiles_dir() / raw
-        if named.exists():
-            resolved.append(named)
-            continue
-        raise ConfigError(f"File not found: {raw}")
+        base = profiles_dir() / subdir if subdir else profiles_dir()
+        for named in (base / raw, base / f"{raw}.json"):
+            if named.exists():
+                resolved.append(named)
+                break
+        else:
+            raise ConfigError(f"File not found: {raw}")
     return resolved
 
 
@@ -176,6 +178,8 @@ def cmd_run(args: argparse.Namespace) -> int:
         weather_threshold=args.weather_threshold,
         score_threshold=args.score_threshold,
         sidecar=args.sidecar,
+        extends=_resolve_extra(args.extends) or None,
+        overrides=args.override or None,
         enable_attr=not args.no_attr,
         enable_detect=bool(args.detect_ckpt),
     )
@@ -338,6 +342,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_run.add_argument("--sample-token", default=None, help="Frame token to pick from detections")
     p_run.add_argument("--sidecar", default=None, help="Sidecar observation JSON (scenery/vehicle)")
+    p_run.add_argument("--extends", nargs="*", default=None, help="Extended profile paths")
+    p_run.add_argument("--override", nargs="*", default=None, help="Override profile paths")
     p_run.add_argument("--device", choices=["cpu", "cuda"], default=None)
     p_run.add_argument("--weather-threshold", type=float, default=None)
     p_run.add_argument("--score-threshold", type=float, default=None)

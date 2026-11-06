@@ -42,3 +42,24 @@ def test_later_add_overrides_same_group():
         .build()
     )
     assert obs.get("sensors.confidence_camera") == 0.9
+
+
+def test_overspeed_derived_from_speed_and_limit():
+    obs = (
+        ObservationBuilder()
+        .add("vehicle", {"speed_kmh": 78.0})
+        .add_sidecar({"vehicle": {"speed_limit_kmh": 60.0}})
+        .build()
+    )
+    assert obs.get("vehicle.overspeed_kmh") == 18.0
+
+
+def test_overspeed_absent_without_limit():
+    obs = ObservationBuilder().add("vehicle", {"speed_kmh": 78.0}).build()
+    assert obs.get("vehicle.overspeed_kmh") is VALUE_MISSING
+
+
+def test_overspeed_derivation_does_not_mutate_group():
+    builder = ObservationBuilder().add("vehicle", {"speed_kmh": 78.0})
+    builder.add_sidecar({"vehicle": {"speed_limit_kmh": 60.0}}).build()
+    assert "overspeed_kmh" not in builder._groups["vehicle"]

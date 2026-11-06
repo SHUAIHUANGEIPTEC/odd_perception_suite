@@ -38,6 +38,7 @@ class DynamicRollup:
             "two_wheelers_present": counts.get("two_wheeler", 0) > 0,
             "obstacles_over_0_3m": counts.get("obstacle", 0),
             "animals_over_0_3m": counts.get("animal", 0),
+            "surrounding_vehicles": counts.get("traffic", 0),
         }
 
     def role_counts(self, detections: list[Detection3D]) -> dict[str, int]:

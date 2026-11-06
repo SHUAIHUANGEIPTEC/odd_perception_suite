@@ -115,6 +115,25 @@
 | `PER-CONF-002` | OUTSIDE（域外） | `ODC.7.1.4.lidar_confidence` | 激光雷达置信度 | >= 0.6，边界带 ±0.05 | — |
 | `PER-LIDAR-CONF-NEAR` | BOUNDARY（边界带） | `ODC.7.1.4.lidar_confidence` | 激光雷达置信度 | >= 0.6，边界带 ±0.05 | — |
 
+### `profiles/odc_ext_cn.json` — profile_id: odc_ext_cn
+
+| 告警码 | 触发状态 | element_id | label_zh | 触发条件 | message_zh |
+|---|---|---|---|---|---|
+| `EXT-FRI-001` | OUTSIDE（域外） | `ODC.1.5.1.road_friction` | 路面附着 | >= 0.4，边界带 ±0.1 | — |
+| `EXT-FRI-NEAR` | BOUNDARY（边界带） | `ODC.1.5.1.road_friction` | 路面附着 | >= 0.4，边界带 ±0.1 | — |
+| `EXT-DEN-001` | OUTSIDE（域外） | `ODC.4.2.1.traffic_density` | 交通流目标数(密度代理) | <= 15，边界带 ±3 | — |
+| `EXT-DEN-NEAR` | BOUNDARY（边界带） | `ODC.4.2.1.traffic_density` | 交通流目标数(密度代理) | <= 15，边界带 ±3 | — |
+| `EXT-SPD-001` | OUTSIDE（域外） | `ODC.2.1.5.speed_limit` | 限速合规(超速量) | <= 5，边界带 ±2 | — |
+| `EXT-SPD-NEAR` | BOUNDARY（边界带） | `ODC.2.1.5.speed_limit` | 限速合规(超速量) | <= 5，边界带 ±2 | — |
+
+### `profiles/overrides/city_noa_cn.json` — profile_id: city_noa_cn
+
+| 告警码 | 触发状态 | element_id | label_zh | 触发条件 | message_zh |
+|---|---|---|---|---|---|
+| `CITY-TL-001` | OUTSIDE（域外） | `ODC.1.5.1.traffic_light_state` | 信号灯状态合规 | ∈ {green} ∉ {red} 边界值 {yellow} | — |
+| `CITY-TL-NEAR` | BOUNDARY（边界带） | `ODC.1.5.1.traffic_light_state` | 信号灯状态合规 | ∈ {green} ∉ {red} 边界值 {yellow} | — |
+| `CITY-JCT-001` | OUTSIDE（域外） | `ODC.1.5.2.intersection_annotation` | 路口类型须标注 | ∈ {signalized, unsignalized, none} | — |
+
 ### `profiles/overrides/example_enterprise.json` — profile_id: example_enterprise
 
 | 告警码 | 触发状态 | element_id | label_zh | 触发条件 | message_zh |

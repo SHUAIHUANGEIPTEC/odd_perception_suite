@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,7 @@ from ..core.errors import ConfigError
 from ..core.types import (
     BoundaryMargin,
     DefinitionMode,
+    MissingPolicy,
     Requirement,
     Rule,
     ThresholdSpec,
@@ -84,7 +86,31 @@ def _parse_rule(el: dict[str, Any]) -> Rule:
     )
 
 
-def parse_profile(data: dict[str, Any]) -> tuple[str, DefinitionMode, list[Rule]]:
+def parse_missing_policy(data: dict[str, Any]) -> MissingPolicy | None:
+    """Build a ``MissingPolicy`` from a profile dict, or ``None`` when absent."""
+    raw = data.get("missing_policy")
+    if raw is None:
+        return None
+    return MissingPolicy(
+        by_element=dict(raw.get("by_element") or {}),
+        by_tag=dict(raw.get("by_tag") or {}),
+        default=str(raw.get("default", "mode")),
+    )
+
+
+@dataclass(frozen=True)
+class ProfileBundle:
+    """A parsed profile plus its missing-observation policy."""
+
+    profile_id: str
+    definition_mode: DefinitionMode
+    rules: list[Rule]
+    missing_policy: MissingPolicy | None = None
+
+
+def _parse_profile_core(
+    data: dict[str, Any],
+) -> tuple[str, DefinitionMode, list[Rule], MissingPolicy | None]:
     errors = validate_profile_dict(data)
     if errors:
         raise ConfigError("Profile validation failed:\n  " + "\n  ".join(errors))
@@ -101,12 +127,64 @@ def parse_profile(data: dict[str, Any]) -> tuple[str, DefinitionMode, list[Rule]
     for el in extras.values():
         rules.append(_parse_rule(el))
 
+    return profile_id, mode, rules, parse_missing_policy(data)
+
+
+def parse_profile(data: dict[str, Any]) -> tuple[str, DefinitionMode, list[Rule]]:
+    profile_id, mode, rules, _ = _parse_profile_core(data)
     return profile_id, mode, rules
+
+
+def parse_profile_bundle(data: dict[str, Any]) -> ProfileBundle:
+    profile_id, mode, rules, policy = _parse_profile_core(data)
+    return ProfileBundle(profile_id, mode, rules, policy)
 
 
 def load_profile(path: str | Path) -> tuple[str, DefinitionMode, list[Rule]]:
     data = _load_json(path)
     return parse_profile(data)
+
+
+def _merge_missing_policy(*policies: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Overlay missing_policy blocks; later sources win per sub-key.
+
+    Elements merge with ``base_priority`` (base wins), but policy refines safety
+    semantics per source, so the later (more specific) source wins.
+    """
+    merged: dict[str, Any] = {}
+    seen = False
+    for pol in policies:
+        if not pol:
+            continue
+        seen = True
+        for group in ("by_element", "by_tag"):
+            sub = pol.get(group)
+            if isinstance(sub, dict):
+                merged.setdefault(group, {}).update(sub)
+        if "default" in pol:
+            merged["default"] = pol["default"]
+    return merged if seen else None
+
+
+def _apply_overrides(
+    base: dict[str, Any],
+    override_paths: list[str | Path] | None,
+) -> dict[str, Any]:
+    """Same element_id replaces; new element_id appends; policy overlays later-wins."""
+    for op in (override_paths or []):
+        od = _load_json(op)
+        by_id = {el["element_id"]: el for el in base.get("elements", []) if "element_id" in el}
+        for el in od.get("elements", []):
+            eid = el.get("element_id")
+            if eid and eid in by_id:
+                by_id[eid] = el
+            elif eid:
+                by_id[eid] = el
+        base["elements"] = list(by_id.values())
+        base["missing_policy"] = _merge_missing_policy(
+            base.get("missing_policy"), od.get("missing_policy")
+        )
+    return base
 
 
 def merge_profiles(
@@ -135,6 +213,9 @@ def merge_profiles(
 
     result = dict(base)
     result["elements"] = [merged_elements[eid] for eid in order]
+    result["missing_policy"] = _merge_missing_policy(
+        *[src.get("missing_policy") for src in sources]
+    )
     return result
 
 
@@ -143,24 +224,21 @@ def load_profile_with_extends(
     extends_paths: list[str | Path] | None = None,
     override_paths: list[str | Path] | None = None,
 ) -> tuple[str, DefinitionMode, list[Rule]]:
+    bundle = load_profile_bundle(path, extends_paths, override_paths)
+    return bundle.profile_id, bundle.definition_mode, bundle.rules
+
+
+def load_profile_bundle(
+    path: str | Path,
+    extends_paths: list[str | Path] | None = None,
+    override_paths: list[str | Path] | None = None,
+) -> ProfileBundle:
     base = _load_json(path)
     others = [_load_json(p) for p in (extends_paths or [])]
     if others:
         base = merge_profiles(base, *others, base_priority=True)
-
-    # Overrides: same element_id replaces; new element_id appends
-    for op in (override_paths or []):
-        od = _load_json(op)
-        by_id = {el["element_id"]: el for el in base.get("elements", []) if "element_id" in el}
-        for el in od.get("elements", []):
-            eid = el.get("element_id")
-            if eid and eid in by_id:
-                by_id[eid] = el
-            elif eid:
-                by_id[eid] = el
-        base["elements"] = list(by_id.values())
-
-    return parse_profile(base)
+    base = _apply_overrides(base, override_paths)
+    return parse_profile_bundle(base)
 
 
 def load_switches(path: str | Path | None = None) -> dict[str, Any]:
@@ -171,7 +249,6 @@ def load_switches(path: str | Path | None = None) -> dict[str, Any]:
             "by_rule_type": {},
             "by_tag": {},
             "boundary_warnings_enabled": True,
-            "boundary_severity": "warning",
         }
     data = _load_json(path)
     errors = validate_switches_dict(data)
@@ -183,7 +260,6 @@ def load_switches(path: str | Path | None = None) -> dict[str, Any]:
         "by_rule_type": {},
         "by_tag": {},
         "boundary_warnings_enabled": True,
-        "boundary_severity": "warning",
     }
     defaults.update(data)
     return defaults
