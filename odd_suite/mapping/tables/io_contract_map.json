@@ -491,9 +491,9 @@
     {
       "id": "missing_policy_proposal",
       "title": "『低置信/地图失配→未决』落 profile missing_policy",
-      "detail": "xlsx 多处『未决』；对应判据机制为 UNDEFINED + missing_policy(by_element→by_tag→default)。byd_tjp 当前未配 missing_policy，缺失观测按 definition_mode=restrictive 判 OUTSIDE（安全优先设计）。",
-      "resolution": "提案（改判据语义，需产品确认后粘贴进 profiles/byd_tjp.json 顶层）：{\"missing_policy\": {\"by_tag\": {\"map\": \"undefined\"}, \"default\": \"mode\"}} — 仅地图来源缺失走未决，其余维持 restrictive。",
-      "status": "待决策"
+      "detail": "xlsx 多处『未决』；对应判据机制为 UNDEFINED + missing_policy(by_element→by_tag→default)。已落地：byd_tjp 顶层 missing_policy 按真实 tag road/scenery 命中 ODC.1 道路组 16 元素。",
+      "resolution": "已实施（2026-11-06 批准）：profiles/byd_tjp.json → {\"missing_policy\": {\"by_tag\": {\"road\": \"undefined\", \"scenery\": \"undefined\"}, \"default\": \"mode\"}} — 道路/地图来源缺失判 UNDEFINED 记 policy_source，其余维持 restrictive；上游 ODD_Judge 4f95200，双副本同步。",
+      "status": "已决策"
     },
     {
       "id": "quantized_bandwidth",

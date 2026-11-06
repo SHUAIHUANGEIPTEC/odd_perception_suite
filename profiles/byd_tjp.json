@@ -2,6 +2,10 @@
   "profile_id": "byd_tjp",
   "label_zh": "比亚迪 TJP 交通拥堵自动驾驶 ODD",
   "definition_mode": "restrictive",
+  "missing_policy": {
+    "by_tag": {"road": "undefined", "scenery": "undefined"},
+    "default": "mode"
+  },
   "extends": null,
   "elements": [
     {

@@ -62,7 +62,7 @@
 |---|---|---|---|
 | C1 | xlsx 要求未知类别→未决；本套件 `dynamic_roles.json` 为 `default_role=ignore`（未知被静默忽略） | 感知侧保证类型闭集，**或** unknown 映射为 `dynamic.agent_type=unknown` 走缺省回退 | 待决策 |
 | C2 | xlsx 要求 `ROBC < 阈值 → fail-safe/ODD exit`；判据无整帧运行时降级开关 | 约定：上游低分时压低 `sensors.confidence_*` 并切 restrictive profile；整帧开关为功能新增，单独立项 | 待决策 |
-| C3 | 「低置信/地图失配→未决」需落 profile `missing_policy` | 提案（**改判据语义，需产品确认**后粘贴进 `profiles/byd_tjp.json` 顶层）：`"missing_policy": {"by_tag": {"map": "undefined"}, "default": "mode"}` — 仅地图来源缺失走未决，其余维持 restrictive（安全优先） | 待决策 |
+| C3 | 「低置信/地图失配→未决」需落 profile `missing_policy` | **已落地（2026-11-06 批准）**：`profiles/byd_tjp.json` 顶层 `"missing_policy": {"by_tag": {"road": "undefined", "scenery": "undefined"}, "default": "mode"}` — ODC.1 道路组 16 元素（真实 tag 为 `road`/`scenery`，原提案的 `map` tag 不存在）缺失时判 UNDEFINED 并记 `policy_source`；其余维持 restrictive。上游仓 ODD_Judge `4f95200`，双副本已同步 | 已决策 |
 | C4 | 多源 1~100Hz，无判决节拍与观测过期规则 | 约定：判决节拍 10Hz，逐字段带 timestamp，超时（环境 >2s 等）按缺失回退 | 待约定 |
 
 ## 4. 验收基线用法
