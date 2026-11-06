@@ -20,7 +20,7 @@
 | 2 | [`judge/odd_judge/config/schema.py`](../judge/odd_judge/config/schema.py) | 校验增强 | `warning_codes` 键名/格式/重复码校验 |
 | 3 | `scripts/gen_warning_codes_doc.py` | 新脚本 | 扫描 profiles 生成码表，支持 `--check` 防漂移 |
 | 4 | `docs/warning_codes.md` | 新文档 | 命名规范 + 自动码表 + 引擎码附录 |
-| 5 | [`tests/test_judge_loader.py`](../tests/test_judge_loader.py) | 测试 | 校验用例 + 文档同步断言 |
+| 5 | [`judge/tests/test_loader.py`](../judge/tests/test_loader.py)（校验用例，现居上游仓）+ [`tests/test_warning_codes_doc.py`](../tests/test_warning_codes_doc.py)（文档同步断言） | 测试 | 校验用例 + 文档同步断言 |
 | 6 | [`README.md`](../README.md) / [`docs/semantics.md`](../docs/semantics.md) / [`docs/architecture.md`](../docs/architecture.md) | 互链 | 指向 `docs/warning_codes.md` |
 
 ## 1. 码值冲突治理（重命名明细）

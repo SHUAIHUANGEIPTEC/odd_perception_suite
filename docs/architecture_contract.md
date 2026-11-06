@@ -20,8 +20,8 @@ MockAdapter       ─┘          ObservationBuilder
 |---|---|---|
 | 适配器产出字段组 | `odd_suite/adapters/attr_adapter.py:53`（`environment`）、`detect_adapter.py:67-73`（`dynamic`+`sensors`）、`sidecar_adapter.py:27-33`（任意组） | 模型差异在这里被吸收 |
 | 映射 + 合并 | `odd_suite/mapping/env_mapper.py`、`dynamic_rollup.py`、`sensor_defaults.py`、`builder.py:52-68` | 优先级：侧车显式值 > 映射默认值 > 缺失；并派生 `vehicle.overspeed_kmh`（`builder.py:23-44`） |
-| 统一观测 | `judge/odd_judge/core/types.py:153` `Observation` | `fields` 嵌套 dict + `get()` 点路径；缺失返回单例哨兵 `VALUE_MISSING`（`types.py:36`） |
-| 判决 | `judge/odd_judge/api.py:91` `OddJudge.evaluate` → `core/evaluate.py` 逐规则 | 只认 `Observation` 契约，不认模型输出 |
+| 统一观测 | `judge/odd_judge/core/types.py:157` `Observation` | `fields` 嵌套 dict + `get()` 点路径；缺失返回单例哨兵 `VALUE_MISSING`（`types.py:53`） |
+| 判决 | `judge/odd_judge/api.py:124` `OddJudge.evaluate` → `core/evaluate.py` 逐规则 | 只认 `Observation` 契约，不认模型输出 |
 
 **结论**：感知结果不直通判决器，但也没有任何通信层；是**进程内直调 + 统一中间表示**。
 
@@ -34,9 +34,9 @@ MockAdapter       ─┘          ObservationBuilder
 
 | 契约 | 位置 | 用途 |
 |---|---|---|
-| `Observation.from_dict` | `judge/odd_judge/core/types.py:170` | JSON / JSONL → 观测 |
-| `RuleResult.to_dict` | `judge/odd_judge/core/types.py:135` | 单规则结果 |
-| `JudgmentReport.to_dict / to_json` | `judge/odd_judge/core/types.py:196-215` | 判决报告 |
+| `Observation.from_dict` | `judge/odd_judge/core/types.py:174` | JSON / JSONL → 观测 |
+| `RuleResult.to_dict` | `judge/odd_judge/core/types.py:137` | 单规则结果 |
+| `JudgmentReport.to_dict / to_json` | `judge/odd_judge/core/types.py:199-215` | 判决报告 |
 | `pipeline_to_dict / to_json` | `odd_suite/report/render.py:12,49` | 整条流水线结果 |
 | `JsonFileAdapter` | `judge/odd_judge/perception/json_stream.py:17-45` | JSON / JSONL 流式读入 |
 
@@ -50,11 +50,11 @@ MockAdapter       ─┘          ObservationBuilder
 | `AttrModel` / `Detector3D` / `DetectionParser` 协议 | `odd_suite/adapters/base.py:14-26` | 新属性模型、新 3D 检测器、新预测文件格式 |
 | `MapperRegistry.register_env_rule / register_role` | `odd_suite/mapping/registry.py:21-25` | 映射规则、检测类角色 |
 | `register_rule_type / register_element` | `judge/odd_judge/config/registry.py:15-35` | 新规则类型、运行时注入元素 |
-| profile `--extends` / `--override` | `judge/odd_judge/config/loader.py:141-165` | 追加 / 按 `element_id` 替换元素 |
+| profile `--extends` / `--override` | `judge/odd_judge/config/loader.py:221-237` | 追加 / 按 `element_id` 替换元素 |
 | 映射表 `--mapping-dir` | `odd_suite/mapping/env_mapper.py:31` | 整目录 JSON 覆写阈值 |
 | switches `by_element` / `by_tag` / `by_rule_type` | `judge/odd_judge/api.py:33` | 按维度 / 标签 / 类型开闭判据 |
 
-`applies_when`（`core/evaluate.py:335`）提供条件适用性：条件为假的规则判 `SKIPPED` / `CONDITIONAL-SKIP`，不参与聚合。
+`applies_when`（`core/evaluate.py:407`）提供条件适用性：条件为假的规则判 `SKIPPED` / `CONDITIONAL-SKIP`，不参与聚合。
 
 ## 4. 缺少信息时：不是「开闭判据」，而是保守赋值
 
@@ -64,12 +64,12 @@ MockAdapter       ─┘          ObservationBuilder
 
 | 优先级 | 机制 | 缺信息时的行为 | 位置 |
 |---|---|---|---|
-| 1 | `requirement = undefined` | UNDEFINED / `UNDEFINED-REQ`，不参与聚合 | `evaluate.py:76` |
-| 2 | 元素级 `undefined_as` | `allowed`→INSIDE ｜ `not_allowed`→OUTSIDE | `evaluate.py:90` |
-| 3 | `missing_policy.by_element[id]` | 按取值 | `evaluate.py:117` |
+| 1 | `requirement = undefined` | UNDEFINED / `UNDEFINED-REQ`，不参与聚合 | `evaluate.py:77` |
+| 2 | 元素级 `undefined_as` | `allowed`→INSIDE ｜ `not_allowed`→OUTSIDE | `evaluate.py:91` |
+| 3 | `missing_policy.by_element[id]` | 按取值 | `evaluate.py:129` |
 | 4 | `missing_policy.by_tag[tag]`（按 `rule.tags` 顺序首个命中） | 按取值 | `core/types.py` `MissingPolicy.resolve` |
 | 5 | `missing_policy.default`（缺省 `"mode"`） | 按取值 / 回落 | 同上 |
-| 6 | profile `definition_mode` | `restrictive`→OUTSIDE(`UNDEFINED-STRICT`) ｜ `permissive`→INSIDE(`UNDEFINED-PERMISSIVE`) ｜ `default`→UNDEFINED(`UNDEFINED-DEFAULT`) | `evaluate.py:113-151` |
+| 6 | profile `definition_mode` | `restrictive`→OUTSIDE(`UNDEFINED-STRICT`) ｜ `permissive`→INSIDE(`UNDEFINED-PERMISSIVE`) ｜ `default`→UNDEFINED(`UNDEFINED-DEFAULT`) | `evaluate.py:171-207` |
 
 ### 4.2 `missing_policy` 写法
 
@@ -112,4 +112,4 @@ profile 顶层可选字段，取值 ∈ `allowed | not_allowed | undefined | mod
 ### 4.4 switches 只做人工开闭
 
 `switches/*.json` 消费的键只有五个：`global_enabled`、`by_element`、`by_tag`、`by_rule_type`、`boundary_warnings_enabled`（`api.py:33-37`）。
-历史遗留的 `on_switch_mismatch` 与 `boundary_severity` 是**死配置**（无任何代码读取），已删除；`tests/test_missing_policy.py::test_switches_config_has_no_dead_keys` 固定住这个结论，新增键必须同步被 `SwitchPolicy` 消费。
+历史遗留的 `on_switch_mismatch` 与 `boundary_severity` 是**死配置**（无任何代码读取），已删除；`judge/tests/test_missing_policy.py::test_switches_config_has_no_dead_keys` 固定住这个结论，新增键必须同步被 `SwitchPolicy` 消费。

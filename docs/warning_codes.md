@@ -6,20 +6,20 @@
 
 ## 1. 概述：两个命名空间
 
-判决结果 [`RuleResult.reason_code`](../judge/odd_judge/core/types.py:126) 会混用两套码值，消费方须区分：
+判决结果 [`RuleResult.reason_code`](../judge/odd_judge/core/types.py:128) 会混用两套码值，消费方须区分：
 
 | 命名空间 | 来源 | 形如 | 含义 |
 |---|---|---|---|
 | **profile 告警码** | [`profiles/*.json`](../profiles/) 各元素的 `warning_codes` 字段 | `ENV-VIS-001`、`ODD-GEO-RADIUS-NEAR` | 该元素越界/临界时的业务告警码，可对外分发 |
 | **引擎码** | [`judge/odd_judge/core/evaluate.py`](../judge/odd_judge/core/evaluate.py) 硬编码 | `UNDEFINED-STRICT`、`CONDITIONAL-SKIP` | 规则未正常评估时的内部原因码（见第 5 节） |
 
-每个元素可配两个告警码键（[`_warning_code()`](../judge/odd_judge/core/evaluate.py:174) 只消费这两个键，
-[`validate_profile_dict()`](../judge/odd_judge/config/schema.py:16) 会拒绝其他键名）：
+每个元素可配两个告警码键（[`_warning_code()`](../judge/odd_judge/core/evaluate.py:229) 只消费这两个键，
+[`validate_profile_dict()`](../judge/odd_judge/config/schema.py:145) 会拒绝其他键名）：
 
 - `outside`：判决为 **OUTSIDE**（域外）时输出；
 - `boundary`：判决为 **BOUNDARY**（落入边界带）时输出；
   **未配置 `boundary` 的元素在 BOUNDARY 状态下回落输出 `outside` 码**
-  （[`evaluate.py:178`](../judge/odd_judge/core/evaluate.py:178)），消费方不能仅凭码值后缀判断严重度。
+  （[`evaluate.py:234`](../judge/odd_judge/core/evaluate.py:234)），消费方不能仅凭码值后缀判断严重度。
 
 ## 2. 命名规范
 
@@ -158,16 +158,20 @@ flowchart LR
   拼入 `outside_reasons` / `boundary_reasons`（`BOUNDARY` 是否输出受
   `boundary_warnings_enabled` 开关控制，见 [`docs/semantics.md`](semantics.md)）；
 - `list-rules` 子命令可快速列出某 profile 的全部码值
-  （[`odd-judge list-rules`](../judge/odd_judge/cli.py:98)）。
+  （[`odd-judge list-rules`](../judge/odd_judge/cli.py:137)）。
 
 ## 5. 引擎码附录（硬编码，不属于 profile）
 
-缺失观测 / 未定义要求（[`_handle_missing()`](../judge/odd_judge/core/evaluate.py:74)）：
+缺失观测 / 未定义要求（[`_handle_missing()`](../judge/odd_judge/core/evaluate.py:75)）：
 
 | 引擎码 | 触发条件 | 判决 |
 |---|---|---|
 | `UNDEFINED-REQ` | 元素 `requirement: undefined` | UNDEFINED（不评估） |
+| `UNDEFINED-AS-UNDEFINED` | 观测缺失且元素 `undefined_as: undefined` | UNDEFINED |
 | `UNDEFINED-AS-NOT-ALLOWED` | 观测缺失且元素 `undefined_as: not_allowed` | OUTSIDE |
+| `MISSING-POLICY-ALLOWED` | 观测缺失，`missing_policy` 命中 `allowed`（来源记入 `policy_source`） | INSIDE |
+| `MISSING-POLICY-NOT-ALLOWED` | 观测缺失，`missing_policy` 命中 `not_allowed` | OUTSIDE |
+| `MISSING-POLICY-UNDEFINED` | 观测缺失，`missing_policy` 命中 `undefined` | UNDEFINED |
 | `UNDEFINED-PERMISSIVE` | 观测缺失，`definition_mode: permissive` | INSIDE |
 | `UNDEFINED-STRICT` | 观测缺失，`definition_mode: restrictive` | OUTSIDE（BYD TJP 默认） |
 | `UNDEFINED-DEFAULT` | 观测缺失，`definition_mode: default` | UNDEFINED |
@@ -178,7 +182,7 @@ flowchart LR
 |---|---|
 | `CONDITIONAL-SKIP` | `applies_when` 组合条件为假，规则跳过，不参与判决 |
 
-开关跳过（记入 [`JudgmentReport.skipped`](../judge/odd_judge/core/types.py:190) 的 `reason` 字段，
+开关跳过（记入 [`JudgmentReport.skipped`](../judge/odd_judge/core/types.py:193) 的 `reason` 字段，
 [`api.py`](../judge/odd_judge/api.py)）：
 
 | reason 文案 | 触发条件 |
@@ -198,4 +202,5 @@ flowchart LR
   ```
 
 - **校验**：`odd-judge validate --profile <name>` 会拒绝非法键名、非法码值格式与跨元素重复码；
-- **测试**：[`tests/test_judge_loader.py`](../tests/test_judge_loader.py) 覆盖上述校验规则与文档同步断言。
+- **测试**：[`judge/tests/test_loader.py`](../judge/tests/test_loader.py) 覆盖上述校验规则；
+  文档同步断言见 [`tests/test_warning_codes_doc.py`](../tests/test_warning_codes_doc.py)。
