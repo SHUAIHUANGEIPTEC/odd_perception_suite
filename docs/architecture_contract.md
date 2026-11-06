@@ -20,8 +20,8 @@ MockAdapter       ─┘          ObservationBuilder
 |---|---|---|
 | 适配器产出字段组 | `odd_suite/adapters/attr_adapter.py:53`（`environment`）、`detect_adapter.py:67-73`（`dynamic`+`sensors`）、`sidecar_adapter.py:27-33`（任意组） | 模型差异在这里被吸收 |
 | 映射 + 合并 | `odd_suite/mapping/env_mapper.py`、`dynamic_rollup.py`、`sensor_defaults.py`、`builder.py:52-68` | 优先级：侧车显式值 > 映射默认值 > 缺失；并派生 `vehicle.overspeed_kmh`（`builder.py:23-44`） |
-| 统一观测 | `odd_judge/core/types.py:153` `Observation` | `fields` 嵌套 dict + `get()` 点路径；缺失返回单例哨兵 `VALUE_MISSING`（`types.py:36`） |
-| 判决 | `odd_judge/api.py:91` `OddJudge.evaluate` → `core/evaluate.py` 逐规则 | 只认 `Observation` 契约，不认模型输出 |
+| 统一观测 | `judge/odd_judge/core/types.py:153` `Observation` | `fields` 嵌套 dict + `get()` 点路径；缺失返回单例哨兵 `VALUE_MISSING`（`types.py:36`） |
+| 判决 | `judge/odd_judge/api.py:91` `OddJudge.evaluate` → `core/evaluate.py` 逐规则 | 只认 `Observation` 契约，不认模型输出 |
 
 **结论**：感知结果不直通判决器，但也没有任何通信层；是**进程内直调 + 统一中间表示**。
 
@@ -34,11 +34,11 @@ MockAdapter       ─┘          ObservationBuilder
 
 | 契约 | 位置 | 用途 |
 |---|---|---|
-| `Observation.from_dict` | `odd_judge/core/types.py:170` | JSON / JSONL → 观测 |
-| `RuleResult.to_dict` | `odd_judge/core/types.py:135` | 单规则结果 |
-| `JudgmentReport.to_dict / to_json` | `odd_judge/core/types.py:196-215` | 判决报告 |
+| `Observation.from_dict` | `judge/odd_judge/core/types.py:170` | JSON / JSONL → 观测 |
+| `RuleResult.to_dict` | `judge/odd_judge/core/types.py:135` | 单规则结果 |
+| `JudgmentReport.to_dict / to_json` | `judge/odd_judge/core/types.py:196-215` | 判决报告 |
 | `pipeline_to_dict / to_json` | `odd_suite/report/render.py:12,49` | 整条流水线结果 |
-| `JsonFileAdapter` | `odd_judge/perception/json_stream.py:17-45` | JSON / JSONL 流式读入 |
+| `JsonFileAdapter` | `judge/odd_judge/perception/json_stream.py:17-45` | JSON / JSONL 流式读入 |
 
 **何时需要协议层**：只有当判决器要跨进程、跨机、或与实时中间件（ROS2/DDS/自研总线）集成时才需要。届时只需新增一个 `ObservationAdapter`（入）和一个报告序列化出口，引擎与 profile 不用动。当前单机回放、离线评测、CI 场景下引入中间件是纯负担。
 
@@ -46,13 +46,13 @@ MockAdapter       ─┘          ObservationBuilder
 
 | 扩展点 | 位置 | 能加什么 |
 |---|---|---|
-| `ObservationAdapter` ABC | `odd_judge/perception/base.py:11` | 新感知源（CAN / 地图 / SPaT） |
+| `ObservationAdapter` ABC | `judge/odd_judge/perception/base.py:11` | 新感知源（CAN / 地图 / SPaT） |
 | `AttrModel` / `Detector3D` / `DetectionParser` 协议 | `odd_suite/adapters/base.py:14-26` | 新属性模型、新 3D 检测器、新预测文件格式 |
 | `MapperRegistry.register_env_rule / register_role` | `odd_suite/mapping/registry.py:21-25` | 映射规则、检测类角色 |
-| `register_rule_type / register_element` | `odd_judge/config/registry.py:15-35` | 新规则类型、运行时注入元素 |
-| profile `--extends` / `--override` | `odd_judge/config/loader.py:141-165` | 追加 / 按 `element_id` 替换元素 |
+| `register_rule_type / register_element` | `judge/odd_judge/config/registry.py:15-35` | 新规则类型、运行时注入元素 |
+| profile `--extends` / `--override` | `judge/odd_judge/config/loader.py:141-165` | 追加 / 按 `element_id` 替换元素 |
 | 映射表 `--mapping-dir` | `odd_suite/mapping/env_mapper.py:31` | 整目录 JSON 覆写阈值 |
-| switches `by_element` / `by_tag` / `by_rule_type` | `odd_judge/api.py:33` | 按维度 / 标签 / 类型开闭判据 |
+| switches `by_element` / `by_tag` / `by_rule_type` | `judge/odd_judge/api.py:33` | 按维度 / 标签 / 类型开闭判据 |
 
 `applies_when`（`core/evaluate.py:335`）提供条件适用性：条件为假的规则判 `SKIPPED` / `CONDITIONAL-SKIP`，不参与聚合。
 

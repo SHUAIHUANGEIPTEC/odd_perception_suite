@@ -47,7 +47,7 @@ dev = ["pytest>=7.0"]
 odd-suite = "odd_suite.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["odd_suite*", "odd_judge*"]
+include = ["odd_suite*"]
 
 [tool.setuptools.package-data]
 "odd_suite.mapping" = ["tables/*.json"]
@@ -58,7 +58,7 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-exclude = ["vendor", "odd_judge"]
+exclude = ["vendor", "judge"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]

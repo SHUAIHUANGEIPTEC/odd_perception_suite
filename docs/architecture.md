@@ -8,12 +8,12 @@
 └───────┬──────────────────────┬───────────────────┬───────────────────┘
         │                      │                   │
 ┌───────▼────────┐   ┌─────────▼─────────┐  ┌──────▼──────────────┐
-│ odd_suite/     │   │ odd_suite/        │  │ odd_judge/          │
-│ adapters/      │   │ pipeline/         │  │ (vendored engine)   │
-│ ImageAttr      │   │ config.py         │  │ OddJudge            │
-│ NuScenesDet    │──►│ runner.py         │─►│ evaluate(obs)       │
-│ JsonSidecar    │   └─────────┬─────────┘  │ → JudgmentReport    │
-│ Mock/Demo      │             │            └─────────────────────┘
+│ odd_suite/     │   │ odd_suite/        │  │ judge/odd_judge/     │
+│ adapters/      │   │ pipeline/         │  │ (submodule engine)   │
+│ ImageAttr      │   │ config.py         │  │ OddJudge             │
+│ NuScenesDet    │──►│ runner.py         │─►│ evaluate(obs)         │
+│ JsonSidecar    │   └─────────┬─────────┘  │ → JudgmentReport      │
+│ Mock/Demo      │             │            └───────────────────────┘
 └───────┬────────┘   ┌─────────▼─────────┐
         │            │ mapping/          │
         │            │ env_mapper        │  纯 Python，无 torch

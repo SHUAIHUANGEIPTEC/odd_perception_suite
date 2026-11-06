@@ -6,8 +6,9 @@
 
 ```bash
 cd /home/shuai/projects/odd_perception_suite
+git submodule update --init                            # 拉取 judge/ 子模块（ODD_Judge 引擎）
 python -m venv .venv && . .venv/bin/activate     # 或 conda create -n odd-core python=3.12
-pip install -e ".[dev]"
+pip install -e ./judge -e ".[dev]"              # judge 引擎 + 本套件双 editable
 ```
 
 可用命令：`demo`、`judge`、`validate`、`list-rules`、`weights-check`、
@@ -24,7 +25,7 @@ pytest -q tests/ -k "not smoke_attr"
 ```bash
 conda create -n odd-attr python=3.12 -y
 conda activate odd-attr
-pip install -e ".[attr,dev]"
+pip install -e ./judge -e ".[attr,dev]"
 # GPU 版按官方源安装对应 CUDA 构建，例如：
 # pip install --index-url https://download.pytorch.org/whl/cu128 torch torchvision
 
@@ -44,7 +45,7 @@ conda create -n odd-detect python=3.10 -y
 conda activate odd-detect
 pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
 pip install -r vendor/sparse4d/requirements.txt
-pip install -e ".[detect,dev]"
+pip install -e ./judge -e ".[detect,dev]"
 bash vendor/sparse4d/scripts/build_ops.sh        # TORCH_CUDA_ARCH_LIST 按你的 GPU 设置
 
 export NUSCENES_DATA_DIR=/path/to/nuscenes        # 需含 nusc/* 预处理缓存，见 VENDOR.md

@@ -1,0 +1,3 @@
+[submodule "judge"]
+	path = judge
+	url = /home/shuai/projects/ODD_Judge

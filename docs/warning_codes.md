@@ -6,25 +6,25 @@
 
 ## 1. 概述：两个命名空间
 
-判决结果 [`RuleResult.reason_code`](../odd_judge/core/types.py:126) 会混用两套码值，消费方须区分：
+判决结果 [`RuleResult.reason_code`](../judge/odd_judge/core/types.py:126) 会混用两套码值，消费方须区分：
 
 | 命名空间 | 来源 | 形如 | 含义 |
 |---|---|---|---|
 | **profile 告警码** | [`profiles/*.json`](../profiles/) 各元素的 `warning_codes` 字段 | `ENV-VIS-001`、`ODD-GEO-RADIUS-NEAR` | 该元素越界/临界时的业务告警码，可对外分发 |
-| **引擎码** | [`odd_judge/core/evaluate.py`](../odd_judge/core/evaluate.py) 硬编码 | `UNDEFINED-STRICT`、`CONDITIONAL-SKIP` | 规则未正常评估时的内部原因码（见第 5 节） |
+| **引擎码** | [`judge/odd_judge/core/evaluate.py`](../judge/odd_judge/core/evaluate.py) 硬编码 | `UNDEFINED-STRICT`、`CONDITIONAL-SKIP` | 规则未正常评估时的内部原因码（见第 5 节） |
 
-每个元素可配两个告警码键（[`_warning_code()`](../odd_judge/core/evaluate.py:174) 只消费这两个键，
-[`validate_profile_dict()`](../odd_judge/config/schema.py:16) 会拒绝其他键名）：
+每个元素可配两个告警码键（[`_warning_code()`](../judge/odd_judge/core/evaluate.py:174) 只消费这两个键，
+[`validate_profile_dict()`](../judge/odd_judge/config/schema.py:16) 会拒绝其他键名）：
 
 - `outside`：判决为 **OUTSIDE**（域外）时输出；
 - `boundary`：判决为 **BOUNDARY**（落入边界带）时输出；
   **未配置 `boundary` 的元素在 BOUNDARY 状态下回落输出 `outside` 码**
-  （[`evaluate.py:178`](../odd_judge/core/evaluate.py:178)），消费方不能仅凭码值后缀判断严重度。
+  （[`evaluate.py:178`](../judge/odd_judge/core/evaluate.py:178)），消费方不能仅凭码值后缀判断严重度。
 
 ## 2. 命名规范
 
 格式：`<域前缀>-<主题>[-<主题>...]-<序号或 NEAR>`，校验正则
-`^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$`（[`schema.py`](../odd_judge/config/schema.py) 强制）。
+`^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$`（[`schema.py`](../judge/odd_judge/config/schema.py) 强制）。
 
 | 前缀 | 含义域 | 示例 |
 |---|---|---|
@@ -46,7 +46,7 @@
   [`docs/training/README.md`](training/README.md)），跳号是正常的，不要"补号"。
 
 唯一性约束：**同一 profile 内每个码值（`boundary` 与 `outside` 统一计入）只能出现一次**，
-由 [`check_warning_code_duplicates()`](../odd_judge/config/schema.py) 在加载与 `validate` 时强制。
+由 [`check_warning_code_duplicates()`](../judge/odd_judge/config/schema.py) 在加载与 `validate` 时强制。
 历史上 `PER-CONF-NEAR` 曾同时挂在摄像头/激光雷达置信度两个元素上（无法归因到传感器），
 已重命名为 `PER-CAM-CONF-NEAR` / `PER-LIDAR-CONF-NEAR`。
 
@@ -154,15 +154,15 @@ flowchart LR
     RR -->|RuleResult.to_dict| J[JudgmentReport JSON]
 ```
 
-- 聚合时 [`aggregate.py`](../odd_judge/core/aggregate.py) 以 `reason_code or element_id`
+- 聚合时 [`aggregate.py`](../judge/odd_judge/core/aggregate.py) 以 `reason_code or element_id`
   拼入 `outside_reasons` / `boundary_reasons`（`BOUNDARY` 是否输出受
   `boundary_warnings_enabled` 开关控制，见 [`docs/semantics.md`](semantics.md)）；
 - `list-rules` 子命令可快速列出某 profile 的全部码值
-  （[`odd-judge list-rules`](../odd_judge/cli.py:98)）。
+  （[`odd-judge list-rules`](../judge/odd_judge/cli.py:98)）。
 
 ## 5. 引擎码附录（硬编码，不属于 profile）
 
-缺失观测 / 未定义要求（[`_handle_missing()`](../odd_judge/core/evaluate.py:74)）：
+缺失观测 / 未定义要求（[`_handle_missing()`](../judge/odd_judge/core/evaluate.py:74)）：
 
 | 引擎码 | 触发条件 | 判决 |
 |---|---|---|
@@ -172,14 +172,14 @@ flowchart LR
 | `UNDEFINED-STRICT` | 观测缺失，`definition_mode: restrictive` | OUTSIDE（BYD TJP 默认） |
 | `UNDEFINED-DEFAULT` | 观测缺失，`definition_mode: default` | UNDEFINED |
 
-条件跳过（[`evaluate.py`](../odd_judge/core/evaluate.py)）：
+条件跳过（[`evaluate.py`](../judge/odd_judge/core/evaluate.py)）：
 
 | 引擎码 | 触发条件 |
 |---|---|
 | `CONDITIONAL-SKIP` | `applies_when` 组合条件为假，规则跳过，不参与判决 |
 
-开关跳过（记入 [`JudgmentReport.skipped`](../odd_judge/core/types.py:190) 的 `reason` 字段，
-[`api.py`](../odd_judge/api.py)）：
+开关跳过（记入 [`JudgmentReport.skipped`](../judge/odd_judge/core/types.py:190) 的 `reason` 字段，
+[`api.py`](../judge/odd_judge/api.py)）：
 
 | reason 文案 | 触发条件 |
 |---|---|

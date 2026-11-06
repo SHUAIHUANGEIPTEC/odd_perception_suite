@@ -88,7 +88,7 @@ def test_cli_evaluate():
         text=True,
         cwd=str(ROOT),
     )
-    assert result.returncode == 0, result.stderr
+    assert result.returncode == 1, result.stderr  # BOUNDARY → exit code 1 (odd_judge CLI)
     assert "BOUNDARY" in result.stdout
 
 

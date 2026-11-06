@@ -76,8 +76,8 @@ class Detector3D(Protocol):
 
 ## 新增 ODD 规则
 
-规则引擎部分（ODC 元素、规则类型）见 `odd_judge/config/registry.py`
-与 `odd_judge/cli.py validate`；profile 增加元素后无需改本套件代码。
+规则引擎部分（ODC 元素、规则类型）见 `judge/odd_judge/config/registry.py`
+与 `judge/odd_judge/cli.py validate`；profile 增加元素后无需改本套件代码。
 
 现成的扩展例子是 `profiles/odc_ext_cn.json`（路面附着 / 交通流密度代理 / 限速合规），
 用 `--extends odc_ext_cn` 挂到任意 base profile 上。新增维度时按同样的三步走：

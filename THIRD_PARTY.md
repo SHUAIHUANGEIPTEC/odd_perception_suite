@@ -33,8 +33,8 @@ and license notes for each are recorded here and in `MANIFEST.json`.
 
 ## 3. ODD judgment engine (from `ODD_Judge`)
 
-- Source: `/home/shuai/projects/ODD_Judge`
-- Vendored at: `odd_judge/` (unchanged, zero runtime dependencies)
+- Source: `github.com/SHUAIHUANGEIPTEC/ODD_Judge`（本地 `~/projects/ODD_Judge`）
+- Consumed as git submodule at `judge/`（见 `.gitmodules`；引擎 canonical 源在上游仓，零运行时依赖）
 - Rule profiles reference: BYD TJP ODC Tables B.1/B.2/B.3 (traffic-jam pilot
   design operating conditions), ISO 34503:2023, GB/T 43267-2023,
   GB/T 45312 (ODC element hierarchy). These standards are referenced, not

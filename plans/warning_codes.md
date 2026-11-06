@@ -4,7 +4,7 @@
 
 ## 背景
 
-[`profiles/byd_tjp.json`](../profiles/byd_tjp.json) 中 42 条 ODC 元素的 [`warning_codes`](../odd_judge/core/types.py:112) 目前无专门文档，码值含义只能靠 `element_id` 反推；存在码值冲突（`PER-CONF-NEAR` 同时挂在摄像头/激光雷达置信度两个元素上）；[`validate_profile_dict()`](../odd_judge/config/schema.py:16) 不校验 `warning_codes` 的键名与重复。
+[`profiles/byd_tjp.json`](../profiles/byd_tjp.json) 中 42 条 ODC 元素的 [`warning_codes`](../judge/odd_judge/core/types.py:112) 目前无专门文档，码值含义只能靠 `element_id` 反推；存在码值冲突（`PER-CONF-NEAR` 同时挂在摄像头/激光雷达置信度两个元素上）；[`validate_profile_dict()`](../judge/odd_judge/config/schema.py:16) 不校验 `warning_codes` 的键名与重复。
 
 ## 范围（已与用户确认）
 
@@ -17,7 +17,7 @@
 | # | 文件 | 类型 | 内容 |
 |---|------|------|------|
 | 1 | [`profiles/byd_tjp.json`](../profiles/byd_tjp.json) | 数据修复 | 重命名冲突码值（见下表） |
-| 2 | [`odd_judge/config/schema.py`](../odd_judge/config/schema.py) | 校验增强 | `warning_codes` 键名/格式/重复码校验 |
+| 2 | [`judge/odd_judge/config/schema.py`](../judge/odd_judge/config/schema.py) | 校验增强 | `warning_codes` 键名/格式/重复码校验 |
 | 3 | `scripts/gen_warning_codes_doc.py` | 新脚本 | 扫描 profiles 生成码表，支持 `--check` 防漂移 |
 | 4 | `docs/warning_codes.md` | 新文档 | 命名规范 + 自动码表 + 引擎码附录 |
 | 5 | [`tests/test_judge_loader.py`](../tests/test_judge_loader.py) | 测试 | 校验用例 + 文档同步断言 |
@@ -37,9 +37,9 @@
 
 新增三条规则（均为 error 级，返回错误字符串列表，风格与现有校验一致）：
 
-1. **键名合法性**：`warning_codes` 仅允许 `outside` / `boundary` 两个键（与 [`_warning_code()`](../odd_judge/core/evaluate.py:174) 的消费口径一致，其他键会被静默忽略，须拦截）。
+1. **键名合法性**：`warning_codes` 仅允许 `outside` / `boundary` 两个键（与 [`_warning_code()`](../judge/odd_judge/core/evaluate.py:174) 的消费口径一致，其他键会被静默忽略，须拦截）。
 2. **码值格式**：正则 `^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$`（兼容现有 `ODD-ROAD-TYPE-001`、`SCN-LANE-01`、`ENV-RAIN-002` 等全部存量码）。
-3. **重复码检测**：同一 profile 内跨元素去重（`boundary` 与 `outside` 码统一计入），冲突时报出双方 `element_id`。同时在 [`parse_profile()`](../odd_judge/config/loader.py:83) 合并 [`get_extra_elements()`](../odd_judge/config/registry.py:37) 后做同样检测，覆盖插件注册元素引入的冲突。
+3. **重复码检测**：同一 profile 内跨元素去重（`boundary` 与 `outside` 码统一计入），冲突时报出双方 `element_id`。同时在 [`parse_profile()`](../judge/odd_judge/config/loader.py:83) 合并 [`get_extra_elements()`](../judge/odd_judge/config/registry.py:37) 后做同样检测，覆盖插件注册元素引入的冲突。
 
 ## 3. 生成脚本 `scripts/gen_warning_codes_doc.py`
 
@@ -52,8 +52,8 @@
 1. 概述：双命名空间（profile 告警码 vs 引擎 `reason_code`）
 2. 命名规范：域前缀表（`ODD-`/`SCN-`/`ENV-`/`ILL-`/`DYN-`/`ODC-`/`PER-`/`ENT-`）、`-NEAR` 后缀、序号；说明跳号（`ENV-RAIN-002` 等）沿用 BYD TJP 表 B.x 条目号
 3. 自动码表（AUTO-GEN 标记区间）：每码一行 — 告警码 / element_id / label_zh / 触发状态 / 阈值条件 / message_zh
-4. 消费行为说明：BOUNDARY 缺 `boundary` 码时回落 `outside` 码（[`evaluate.py:178`](../odd_judge/core/evaluate.py:178)）；`reason_code` 输出位置（[`RuleResult`](../odd_judge/core/types.py:121) → [`aggregate.py`](../odd_judge/core/aggregate.py:53)）
-5. 引擎码附录（手写）：`UNDEFINED-REQ`、`UNDEFINED-AS-NOT-ALLOWED`、`UNDEFINED-PERMISSIVE`、`UNDEFINED-STRICT`、`UNDEFINED-DEFAULT`、`CONDITIONAL-SKIP`，及开关跳过 reason（[`api.py`](../odd_judge/api.py:41)）
+4. 消费行为说明：BOUNDARY 缺 `boundary` 码时回落 `outside` 码（[`evaluate.py:178`](../judge/odd_judge/core/evaluate.py:178)）；`reason_code` 输出位置（[`RuleResult`](../judge/odd_judge/core/types.py:121) → [`aggregate.py`](../judge/odd_judge/core/aggregate.py:53)）
+5. 引擎码附录（手写）：`UNDEFINED-REQ`、`UNDEFINED-AS-NOT-ALLOWED`、`UNDEFINED-PERMISSIVE`、`UNDEFINED-STRICT`、`UNDEFINED-DEFAULT`、`CONDITIONAL-SKIP`，及开关跳过 reason（[`api.py`](../judge/odd_judge/api.py:41)）
 6. 维护说明：`python scripts/gen_warning_codes_doc.py` 重新生成；`odd-judge validate` 校验
 
 ## 5. 测试

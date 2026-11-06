@@ -27,7 +27,8 @@
 
 ```bash
 cd /home/shuai/projects/odd_perception_suite
-pip install -e ".[dev]"        # 核心零第三方依赖；[dev] 只装 pytest
+git submodule update --init           # 拉取 judge/ 子模块（ODD_Judge 引擎仓）
+pip install -e ./judge -e ".[dev]"    # 双 editable：judge 引擎 + 本套件；[dev] 只装 pytest
 
 # 1) 全链路 mock 演示：三态（域内/临近边界/越界）一次看全
 odd-suite demo
@@ -58,7 +59,7 @@ odd-suite run --no-attr --override city_noa_cn --sidecar <侧车JSON>
 
 ```bash
 # ODD 属性检出（CPU 可跑，需 torch）
-pip install -e ".[attr]"
+pip install -e ./judge -e ".[attr]"
 python scripts/make_demo_image.py    # 生成演示图（二进制不入库）
 odd-suite attr examples/images/demo.png --checkpoint weights/attr_best.pth --device cpu
 
@@ -67,7 +68,7 @@ odd-suite run --images examples/images/demo.png \
   --sidecar examples/sidecar_highway.json --device cpu
 
 # 真实 Sparse4D 推理（需 nuScenes + CUDA 算子，见 docs/env_setup.md）
-pip install -e ".[detect]"
+pip install -e ./judge -e ".[detect]"
 bash vendor/sparse4d/scripts/build_ops.sh
 odd-suite run --detect-ckpt weights/sparse4d_last.ckpt \
   --data-root "$NUSCENES_DATA_DIR" \
@@ -81,7 +82,7 @@ odd-suite run --detect-ckpt weights/sparse4d_last.ckpt \
 pytest -q tests/ -k "not smoke_attr"
 
 # 全量（含 test_smoke_attr：真权重加载 + 224 前向，需 attr 环境，CPU torch 即可）
-pip install -e ".[attr,dev]"        # torch / torchvision / numpy / pillow + pytest
+pip install -e ./judge -e ".[attr,dev]"        # torch / torchvision / numpy / pillow + pytest
 pytest -q tests/
 ```
 
@@ -93,7 +94,7 @@ pytest -q tests/
 | 路径 | 内容 |
 |---|---|
 | `odd_suite/` | 第一方胶水：CLI、schema、映射层、适配器、流水线、报告；`vendor/attr/` 为属性分类器模型代码与 checkpoint 契约 |
-| `odd_judge/` | ODD 判别规则引擎（原 ODD_Judge 包原样迁入，零依赖，API 不变） |
+| `judge/` | **git submodule**：ODD 判别规则引擎（上游独立仓 ODD_Judge，引擎 canonical 源；见 `.gitmodules`） |
 | `vendor/sparse4d/` | Sparse4D 检测运行时（原交付包，内部导入不变；见 `VENDOR.md`） |
 | `configs/ profiles/ switches/` | 流水线默认配置、ODD 规则 profile（BYD TJP / GB-T 骨架 / `odc_ext_cn` 扩展）、开关策略 |
 | `weights/` | 最优权重各一份：`attr_best.pth`（拷贝）+ `sparse4d_last.ckpt`（软链）；`MANIFEST.json` 记录来源/哈希/指标 |
@@ -136,7 +137,7 @@ pytest -q tests/
   `bash scripts/format_native.sh` 对第一方原生代码执行 clang-format。
   `vendor/sparse4d/` 是原样交付的第三方代码，**不**重排格式。
 - **Python**：`pyproject.toml` 中的 ruff 配置（100 列、py310 目标、E/F/I/W 规则）；
-  `vendor/` 与 `odd_judge/` 保持原样排除在外。
+  `vendor/` 与 `judge/`（子模块，风格由上游仓管）保持原样排除在外。
 - **`.gitignore`**：排除权重二进制（`MANIFEST.json` 除外）、`__pycache__`、虚拟环境、
   运行时输出、编译产物（`*.so`/build）等；权重用 `odd-suite weights-check` 校验。
 
